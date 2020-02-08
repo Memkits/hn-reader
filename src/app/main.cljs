@@ -9,14 +9,17 @@
             [reel.schema :as reel-schema]
             [cljs.reader :refer [read-string]]
             [app.config :as config]
-            [cumulo-util.core :refer [repeat!]]))
+            [cumulo-util.core :refer [repeat!]]
+            [app.data-gather :refer [*resource on-operation]]))
 
 (defonce *reel
   (atom (-> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store))))
 
 (defn dispatch! [op op-data]
   (when config/dev? (println "Dispatch:" op))
-  (reset! *reel (reel-updater updater @*reel op op-data)))
+  (if (contains? #{:load-top10 :load-topic :load-comment} op)
+    (on-operation op op-data)
+    (reset! *reel (reel-updater updater @*reel op op-data))))
 
 (def mount-target (.querySelector js/document ".app"))
 
@@ -24,7 +27,7 @@
   (.setItem js/localStorage (:storage-key config/site) (pr-str (:store @*reel))))
 
 (defn render-app! [renderer]
-  (renderer mount-target (comp-container @*reel) #(dispatch! %1 %2)))
+  (renderer mount-target (comp-container @*reel @*resource) #(dispatch! %1 %2)))
 
 (def ssr? (some? (js/document.querySelector "meta.respo-ssr")))
 
@@ -33,11 +36,13 @@
   (if ssr? (render-app! realize-ssr!))
   (render-app! render!)
   (add-watch *reel :changes (fn [] (render-app! render!)))
+  (add-watch *resource :changes (fn [] (render-app! render!)))
   (listen-devtools! "a" dispatch!)
   (.addEventListener js/window "beforeunload" persist-storage!)
   (repeat! 60 persist-storage!)
   (let [raw (.getItem js/localStorage (:storage-key config/site))]
     (when (some? raw) (dispatch! :hydrate-storage (read-string raw))))
+  (dispatch! :load-top10 nil)
   (println "App started."))
 
 (defn reload! []

@@ -29,3 +29,7 @@ body * {
 ::-webkit-resizer {
   background-color:transparent;
 }
+
+.hoverable:hover {
+  background-color: hsl(0,0%,96%);
+}
