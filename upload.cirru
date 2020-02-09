@@ -1,10 +1,10 @@
 
 {}
-  :host |tiye.me
+  :host |memkits.org
   :uploads $ []
     {}
       :from |dist/*
-      :to |cdn/calcit-workflow/
+      :to |cdn/hn-reader/
     {}
       :from |dist/{index.html,manifest.json}
-      :to |repo/mvc-works/calcit-workflow/
+      :to |repo/Memkits/hn-reader/

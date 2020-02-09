@@ -17,7 +17,7 @@
 (def site
   {:dev-ui "http://localhost:8100/main-fonts.css",
    :release-ui "http://cdn.tiye.me/favored-fonts/main-fonts.css",
-   :cdn-url "http://cdn.tiye.me/calcit-workflow/",
-   :title "Calcit",
-   :icon "http://cdn.tiye.me/logo/mvc-works.png",
-   :storage-key "workflow"})
+   :cdn-url "http://cdn.tiye.me/hn-reader/",
+   :title "HN Reader",
+   :icon "http://cdn.tiye.me/logo/memkits.png",
+   :storage-key "hn-reader"})
