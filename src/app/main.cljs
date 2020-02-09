@@ -17,7 +17,7 @@
 
 (defn dispatch! [op op-data]
   (when config/dev? (println "Dispatch:" op))
-  (if (contains? #{:load-top10 :load-topic :load-comment} op)
+  (if (contains? #{:load-top10 :load-topic :load-reply} op)
     (on-operation op op-data)
     (reset! *reel (reel-updater updater @*reel op op-data))))
 

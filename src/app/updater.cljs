@@ -5,5 +5,6 @@
   (case op
     :states (update store :states (mutate op-data))
     :content (assoc store :content op-data)
+    :router (assoc store :router op-data)
     :hydrate-storage op-data
     store))
