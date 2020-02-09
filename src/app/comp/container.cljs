@@ -10,15 +10,28 @@
             [respo-md.comp.md :refer [comp-md]]
             [app.config :refer [dev?]]
             [respo.comp.inspect :refer [comp-inspect]]
-            ["dayjs" :as dayjs]))
+            ["dayjs" :as dayjs])
+  (:require-macros [clojure.core.strint :refer [<<]]))
+
+(defcomp
+ comp-time
+ (time)
+ (if (some? time)
+   (let [time-obj (dayjs (* 1000 time)), year (.getFullYear (js/Date.))]
+     (if (= (str year) (.format time-obj "YYYY"))
+       (<> (.format time-obj "MM-DD HH:mm"))
+       (<> (.format time-obj "YYYY-MM-DD HH:mm"))))
+   (<> "nil")))
 
 (defcomp
  comp-reply
- (reply on-click)
+ (reply selected? on-click)
  (if (nil? reply)
    (div
     {}
-    (<> (str "Data required") {:color (hsl 0 0 80), :padding 8, :font-family ui/font-fancy}))
+    (<>
+     (str "Data from network")
+     {:color (hsl 0 0 80), :padding 8, :font-family ui/font-fancy}))
    (let [has-kids (pos? (count (:kids reply)))]
      (div
       {:style (merge
@@ -27,23 +40,43 @@
                 :border-bottom (str "1px solid " (hsl 0 0 80)),
                 :cursor (if has-kids :pointer),
                 :background-color :white,
-                :margin-bottom 16}),
+                :margin-bottom 16}
+               (if selected?
+                 {:border (str "1px solid " (hsl 0 0 70)),
+                  :border-bottom (str "2px solid " (hsl 0 0 62))}
+                 )),
        :class-name "hoverable reply",
        :on-click (fn [e d! m!] (if has-kids (on-click e d! m!)))}
       (div
-       {:style {:color (hsl 0 0 60), :font-size 13, :font-family ui/font-fancy}}
-       (<> (str "@" (:by reply)) {:color :black, :font-size 14})
-       (=< 8 nil)
-       (<> (.format (dayjs (* 1000 (:time reply))) "YYYY-MM-DD HH:mm"))
-       (=< 8 nil)
-       (<> (str "Comments: " (count (:kids reply)))))
+       {:style ui/row-parted}
+       (div
+        {:style {:color (hsl 0 0 60), :font-size 13, :font-family ui/font-fancy}}
+        (<>
+         (str (:by reply))
+         {:color :black, :font-size 14, :font-weight :bold, :font-family ui/font-normal})
+        (=< 8 nil)
+        (comp-time (:time reply)))
+       (a
+        {:href (<< "https://news.ycombinator.com/item?id=~(:id reply)"),
+         :inner-text "link",
+         :target "_blank",
+         :style {:font-family ui/font-fancy}}))
       (div
        {:innerHTML (:text reply),
         :style {:line-height "22px"},
         :on-click (fn [e d! m!]
           (if (= "A" (-> e :event .-target .-tagName))
             (do (-> e :event .preventDefault) (-> e :event .-target .-href js/window.open))
-            (if has-kids (on-click e d! m!))))})))))
+            (if has-kids (on-click e d! m!))))})
+      (div
+       {}
+       (let [size (count (:kids reply))]
+         (if (pos? size)
+           (div
+            {}
+            (<> (str "Comments: ") {:color (hsl 0 0 50), :font-family ui/font-fancy})
+            (<> size))
+           (<> (str "No comments.") {:color (hsl 0 0 80), :font-family ui/font-fancy}))))))))
 
 (defcomp
  comp-reply-parent
@@ -70,7 +103,7 @@
      {:style {:color (hsl 0 0 60)}}
      (<> (str "@" (:by reply)))
      (=< 8 nil)
-     (<> (.format (dayjs (* 1000 (:time reply))) "YYYY-MM-DD HH:mm"))
+     (comp-time (:time reply))
      (=< 8 nil)
      (<> (str "Comments: " (count (:kids reply))))))))
 
@@ -131,6 +164,7 @@
                           (let [reply (get-in resource [:replies reply-id])]
                             (comp-reply
                              reply
+                             (do (println coord reply-id) (contains? (set coord) reply-id))
                              (fn [e d! m!]
                                (d!
                                 :router
@@ -141,7 +175,9 @@
  comp-topic
  (topic style on-click)
  (if (nil? topic)
-   (div {} (<> "Data required" {:color (hsl 0 0 80), :padding 8, :font-family ui/font-fancy}))
+   (div
+    {}
+    (<> "Data from network" {:color (hsl 0 0 80), :padding 8, :font-family ui/font-fancy}))
    (div
     {:class-name "hoverable",
      :style (merge
@@ -188,6 +224,7 @@
      (input
       {:value (:text state),
        :style ui/input,
+       :placeholder "an id to load topic...",
        :on-input (fn [e d! m!] (m! (assoc state :text (:value e))))})
      (=< 8 nil)
      (button
