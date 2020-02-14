@@ -118,7 +118,13 @@
              :cursor :default,
              :border-bottom (str "1px solid " (hsl 0 0 93)),
              :background-color (hsl 0 0 90)}}
-    (div {} (<> (:title topic) {:font-size 16}))
+    (div
+     {:style ui/row-parted}
+     (<> (:title topic) {:font-size 16})
+     (a
+      {:href (str "https://news.ycombinator.com/item?id=" (:id topic)),
+       :inner-text "link",
+       :target "_blank"}))
     (div
      {:style {:color (hsl 0 0 50), :font-family ui/font-fancy}}
      (a {:inner-text (str "@" (:by topic))})
@@ -188,6 +194,17 @@
      :on-click on-click}
     (div
      {:style {:font-size 14, :text-overflow :ellipsis, :overflow :hidden}}
+     (<>
+      (:score topic)
+      {:display :inline-block,
+       :padding "0 6px",
+       :background-color (hsl 60 80 42),
+       :color :white,
+       :font-size 14,
+       :line-height "20px",
+       :border-radius "16px",
+       :font-family ui/font-fancy})
+     (=< 8 nil)
      (<> (:title topic)))
     (div
      {:style {:color (hsl 0 0 50),
@@ -195,8 +212,6 @@
               :font-size 12,
               :line-height "16px"}}
      (a {:inner-text (str "@" (:by topic))})
-     (=< 12 nil)
-     (<> (str "Score: " (:score topic)) {})
      (=< 12 nil)
      (<> (str "Comments: " (count (:kids topic))))
      (=< 12 nil)
@@ -233,6 +248,10 @@
        :on-click (fn [e d! m!]
          (d! :load-topic (:text state))
          (d! :router {:data [(:text state)]}))}))
+    (if (empty? (:top10 resource))
+      (<>
+       (str "Data from network")
+       {:color (hsl 0 0 80), :padding 8, :font-family ui/font-fancy}))
     (list->
      {:style (merge
               ui/expand
