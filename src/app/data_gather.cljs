@@ -41,7 +41,7 @@
 (defn load-top10! []
   (go
    (let [top-ids (take
-                  10
+                  20
                   (<!
                    (chan-get!
                     "https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty")))]
