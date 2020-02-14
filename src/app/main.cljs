@@ -10,7 +10,8 @@
             [cljs.reader :refer [read-string]]
             [app.config :as config]
             [cumulo-util.core :refer [repeat!]]
-            [app.data-gather :refer [*resource on-operation]]))
+            [app.data-gather :refer [*resource on-operation]]
+            [clojure.string :as string]))
 
 (defonce *reel
   (atom (-> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store))))
@@ -44,7 +45,11 @@
    let
    ((raw (.getItem js/localStorage (:storage-key config/site))))
    (when (some? raw) (dispatch! :hydrate-storage (read-string raw))))
-  (dispatch! :load-top10 nil)
+  (if (string/starts-with? js/location.search "?id=")
+    (let [id (subs js/location.search 4)]
+      (dispatch! :load-topic id)
+      (dispatch! :router {:data [id]}))
+    (dispatch! :load-top10 nil))
   (println "App started."))
 
 (defn reload! []

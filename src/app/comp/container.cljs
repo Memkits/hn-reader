@@ -235,22 +235,28 @@
               :overflow :auto,
               :margin-right 16})}
     (div
-     {:style {:padding 16, :border-bottom (str "1px solid " (hsl 0 0 90))}}
-     (input
-      {:value (:text state),
-       :style ui/input,
-       :placeholder "an id to load topic...",
-       :on-input (fn [e d! m!] (m! (assoc state :text (:value e))))})
-     (=< 8 nil)
+     {:style (merge
+              ui/row-parted
+              {:padding 16, :border-bottom (str "1px solid " (hsl 0 0 90))})}
      (button
-      {:inner-text "Load",
-       :style ui/button,
-       :on-click (fn [e d! m!]
-         (d! :load-topic (:text state))
-         (d! :router {:data [(:text state)]}))}))
+      {:inner-text "List", :style ui/button, :on-click (fn [e d! m!] (d! :load-top10 nil))})
+     (div
+      {}
+      (input
+       {:value (:text state),
+        :style ui/input,
+        :placeholder "an id to load topic...",
+        :on-input (fn [e d! m!] (m! (assoc state :text (:value e))))})
+      (=< 8 nil)
+      (button
+       {:inner-text "Load",
+        :style ui/button,
+        :on-click (fn [e d! m!]
+          (d! :load-topic (:text state))
+          (d! :router {:data [(:text state)]}))})))
     (if (empty? (:top10 resource))
       (<>
-       (str "Data from network")
+       (str "Empty list yet.")
        {:color (hsl 0 0 80), :padding 8, :font-family ui/font-fancy}))
     (list->
      {:style (merge
