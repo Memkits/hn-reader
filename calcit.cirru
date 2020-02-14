@@ -723,26 +723,16 @@
                                                                                     :id |p4Tttejy
                                                                                 :id |XIzcW5dw5
                                                                             :id |24MpL99X
-                                                                          |p $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1581240757863)
+                                                                          |p $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1581254310378)
                                                                             :data $ {}
-                                                                              |T $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1581240650521)
+                                                                              |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581254310378) (:text |contains?) (:id |Y6NlpQcrL)
+                                                                              |j $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1581254310378)
                                                                                 :data $ {}
-                                                                                  |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581240651898) (:text |contains?) (:id |pizhGon2)
-                                                                                  |j $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581240657370) (:text |reply-id) (:id |LVR5QjQO)
-                                                                                  |b $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1581240660230)
-                                                                                    :data $ {}
-                                                                                      |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581240660794) (:text |set) (:id |POKiCeDkp)
-                                                                                      |j $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581240663325) (:text |coord) (:id |IO4a3KwN)
-                                                                                    :id |uOEQk2qV
-                                                                                :id |TYneqoCY9
-                                                                              |D $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581240758796) (:text |do) (:id |QKq98jLC)
-                                                                              |L $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1581240759141)
-                                                                                :data $ {}
-                                                                                  |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581240759850) (:text |println) (:id |rIi3WilVj)
-                                                                                  |j $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581240761336) (:text |coord) (:id |Pw6bqZ3fs)
-                                                                                  |r $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581240764067) (:text |reply-id) (:id |6qz4hRwdf)
-                                                                                :id |1ipn_0vT
-                                                                            :id |R5aXRA39d
+                                                                                  |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581254310378) (:text |set) (:id |145lxDky_)
+                                                                                  |j $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581254310378) (:text |coord) (:id |tdrSlYeSF)
+                                                                                :id |pFYu15jnP
+                                                                              |r $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581254310378) (:text |reply-id) (:id |M4IFlJ9wQ)
+                                                                            :id |Idx8O3V9X
                                                                         :id |j11exSQW
                                                                       |D $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581231984585) (:text |let) (:id |Rhxz6FET)
                                                                       |L $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1581231984864)

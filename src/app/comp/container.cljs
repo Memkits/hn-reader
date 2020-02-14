@@ -164,7 +164,7 @@
                           (let [reply (get-in resource [:replies reply-id])]
                             (comp-reply
                              reply
-                             (do (println coord reply-id) (contains? (set coord) reply-id))
+                             (contains? (set coord) reply-id)
                              (fn [e d! m!]
                                (d!
                                 :router
