@@ -39,6 +39,7 @@
            (recur (rest xs))))))))
 
 (defn load-top10! []
+  (swap! *resource assoc :top10 [])
   (go
    (let [top-ids (take
                   20

@@ -4,7 +4,19 @@
             [respo-ui.core :as ui]
             [respo.core
              :refer
-             [defcomp defeffect cursor-> <> div list-> button textarea span input section a]]
+             [defcomp
+              defeffect
+              create-element
+              cursor->
+              <>
+              div
+              list->
+              button
+              textarea
+              span
+              input
+              section
+              a]]
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md]]
@@ -178,6 +190,28 @@
                                (d! :load-reply (:id reply)))))]))))))]))))))
 
 (defcomp
+ comp-frame
+ (topic)
+ (if (some? topic)
+   (div
+    {:style (merge ui/column {:width 600, :background-color (hsl 0 0 88)})}
+    (div
+     {:style {:padding "0 8px",
+              :overflow :hidden,
+              :width "100%",
+              :background-color :white,
+              :white-space :nowrap,
+              :border-bottom (str "1px solid " (hsl 0 0 90))}}
+     (a {:inner-text (:url topic), :href (:url topic), :target "_blank"}))
+    (create-element
+     :iframe
+     {:style (merge ui/expand {:border :none}),
+      :sandbox "",
+      :src (:url topic),
+      :scrolling "yes"}))
+   (span nil)))
+
+(defcomp
  comp-topic
  (topic style on-click)
  (if (nil? topic)
@@ -235,22 +269,28 @@
               :overflow :auto,
               :margin-right 16})}
     (div
-     {:style {:padding 16, :border-bottom (str "1px solid " (hsl 0 0 90))}}
-     (input
-      {:value (:text state),
-       :style ui/input,
-       :placeholder "an id to load topic...",
-       :on-input (fn [e d! m!] (m! (assoc state :text (:value e))))})
-     (=< 8 nil)
+     {:style (merge
+              ui/row-parted
+              {:padding 16, :border-bottom (str "1px solid " (hsl 0 0 90))})}
      (button
-      {:inner-text "Load",
-       :style ui/button,
-       :on-click (fn [e d! m!]
-         (d! :load-topic (:text state))
-         (d! :router {:data [(:text state)]}))}))
+      {:inner-text "List", :style ui/button, :on-click (fn [e d! m!] (d! :load-top10 nil))})
+     (div
+      {}
+      (input
+       {:value (:text state),
+        :style ui/input,
+        :placeholder "an id to load topic...",
+        :on-input (fn [e d! m!] (m! (assoc state :text (:value e))))})
+      (=< 8 nil)
+      (button
+       {:inner-text "Load",
+        :style ui/button,
+        :on-click (fn [e d! m!]
+          (d! :load-topic (:text state))
+          (d! :router {:data [(:text state)]}))})))
     (if (empty? (:top10 resource))
       (<>
-       (str "Data from network")
+       (str "Empty list yet.")
        {:color (hsl 0 0 80), :padding 8, :font-family ui/font-fancy}))
     (list->
      {:style (merge
@@ -274,6 +314,7 @@
    (div
     {:style (merge ui/fullscreen ui/global ui/row {:overflow-x :auto})}
     (cursor-> :topics comp-topic-list states resource)
+    (let [topic (get-in resource [:topics (first (:data router))])] (comp-frame topic))
     (comp-comment-list router resource)
     (=< 600 nil)
     (when dev? (comp-inspect "store" store {:bottom 0}))
