@@ -4,7 +4,7 @@
   :uploads $ []
     {}
       :from |dist/*
-      :to |cdn/hn-reader/
+      :to |/web-assets/cdn/hn-reader/
     {}
       :from |dist/{index.html,manifest.json}
-      :to |repo/Memkits/hn-reader/
+      :to |/web-assets/repo/Memkits/hn-reader/

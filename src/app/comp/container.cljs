@@ -203,12 +203,7 @@
               :white-space :nowrap,
               :border-bottom (str "1px solid " (hsl 0 0 90))}}
      (a {:inner-text (:url topic), :href (:url topic), :target "_blank"}))
-    (create-element
-     :iframe
-     {:style (merge ui/expand {:border :none}),
-      :sandbox "",
-      :src (:url topic),
-      :scrolling "yes"}))
+    (create-element :object {:style (merge ui/expand {:border :none}), :data (:url topic)}))
    (span nil)))
 
 (defcomp
