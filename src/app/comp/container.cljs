@@ -50,15 +50,12 @@
                {:padding 16,
                 :border (str "1px solid " (hsl 0 0 90)),
                 :border-bottom (str "1px solid " (hsl 0 0 80)),
-                :cursor (if has-kids :pointer),
                 :background-color :white,
                 :margin-bottom 16}
                (if selected?
                  {:border (str "1px solid " (hsl 0 0 70)),
-                  :border-bottom (str "2px solid " (hsl 0 0 62))}
-                 )),
-       :class-name "hoverable reply",
-       :on-click (fn [e d! m!] (if has-kids (on-click e d! m!)))}
+                  :border-bottom (str "2px solid " (hsl 0 0 62))})),
+       :class-name "hoverable reply"}
       (div
        {:style ui/row-parted}
        (div
@@ -78,15 +75,21 @@
         :style {:line-height "22px"},
         :on-click (fn [e d! m!]
           (if (= "A" (-> e :event .-target .-tagName))
-            (do (-> e :event .preventDefault) (-> e :event .-target .-href js/window.open))
-            (if has-kids (on-click e d! m!))))})
+            (do (-> e :event .preventDefault) (-> e :event .-target .-href js/window.open))))})
       (div
-       {}
+       {:style ui/row-parted}
+       (span nil)
        (let [size (count (:kids reply))]
          (if (pos? size)
            (div
-            {}
-            (<> (str "Comments: ") {:color (hsl 0 0 50), :font-family ui/font-fancy})
+            {:style {:display :inline-block,
+                     :background-color (hsl 200 80 60),
+                     :color :white,
+                     :padding "0 12px",
+                     :border-radius "16px",
+                     :cursor :pointer},
+             :on-click (fn [e d! m!] (if has-kids (on-click e d! m!)))}
+            (<> (str "Comments: ") {:font-family ui/font-fancy, :font-size 12})
             (<> size))
            (<> (str "No comments.") {:color (hsl 0 0 80), :font-family ui/font-fancy}))))))))
 
@@ -132,7 +135,20 @@
              :background-color (hsl 0 0 90)}}
     (div
      {:style ui/row-parted}
-     (<> (:title topic) {:font-size 16})
+     (div
+      {:style ui/row-parted}
+      (<>
+       (:score topic)
+       {:display :inline-block,
+        :padding "0 6px",
+        :background-color (hsl 60 80 42),
+        :color :white,
+        :font-size 14,
+        :line-height "20px",
+        :border-radius "16px",
+        :font-family ui/font-fancy})
+      (=< 8 nil)
+      (<> (:title topic) {:font-size 16}))
      (a
       {:href (str "https://news.ycombinator.com/item?id=" (:id topic)),
        :inner-text "link",
@@ -140,8 +156,6 @@
     (div
      {:style {:color (hsl 0 0 50), :font-family ui/font-fancy}}
      (a {:inner-text (str "@" (:by topic))})
-     (=< 12 nil)
-     (<> (str "Score: " (:score topic)) {})
      (=< 12 nil)
      (<> (str "Comments: " (count (:kids topic))))
      (=< 12 nil)
@@ -194,7 +208,9 @@
  (topic)
  (if (some? topic)
    (div
-    {:style (merge ui/column {:width 600, :background-color (hsl 0 0 88)})}
+    {:style (merge
+             ui/column
+             {:width 600, :background-color (hsl 0 0 100), :margin-right 16})}
     (div
      {:style {:padding "0 8px",
               :overflow :hidden,
@@ -203,7 +219,11 @@
               :white-space :nowrap,
               :border-bottom (str "1px solid " (hsl 0 0 90))}}
      (a {:inner-text (:url topic), :href (:url topic), :target "_blank"}))
-    (create-element :object {:style (merge ui/expand {:border :none}), :data (:url topic)}))
+    (create-element
+     :object
+     {:style (merge ui/expand {:border :none}),
+      :data (:url topic),
+      :innerHTML "Not loaded."}))
    (span nil)))
 
 (defcomp
