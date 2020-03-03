@@ -320,7 +320,20 @@
                {}
                (fn [e d! m!]
                  (d! :load-topic (:id topic))
-                 (d! :router {:data [(:id topic)]})))])))))))
+                 (d! :router {:data [(:id topic)]})))]))))
+    (div
+     {:style {:padding "16px 16px"}}
+     (div {} (<> "HN Reader on GitHub"))
+     (div
+      {}
+      (a
+       {:style {:font-size 12,
+                :text-decoration :none,
+                :line-height "12px",
+                :font-family ui/font-fancy},
+        :target "_blank",
+        :inner-text "https://github.com/Memkits/hn-reader",
+        :href "https://github.com/Memkits/hn-reader"}))))))
 
 (defcomp
  comp-container
