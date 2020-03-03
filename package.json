@@ -21,10 +21,10 @@
   "devDependencies": {
     "coffeescript": "^2.5.1",
     "http-server": "^0.12.1",
-    "shadow-cljs": "^2.8.83"
+    "shadow-cljs": "^2.8.90"
   },
   "dependencies": {
-    "dayjs": "^1.8.20",
+    "dayjs": "^1.8.21",
     "feather-icons": "^4.26.0",
     "shortid": "^2.2.15"
   }
