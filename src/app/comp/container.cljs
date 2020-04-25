@@ -7,7 +7,7 @@
              [defcomp
               defeffect
               create-element
-              cursor->
+              >>
               <>
               div
               list->
@@ -274,7 +274,7 @@
 (defcomp
  comp-topic-list
  (states resource)
- (let [state (or (:data states) {:text ""})]
+ (let [cursor (:cursor states), state (or (:data states) {:text ""})]
    (div
     {:style (merge
              ui/column
@@ -288,19 +288,19 @@
               ui/row-parted
               {:padding 16, :border-bottom (str "1px solid " (hsl 0 0 90))})}
      (button
-      {:inner-text "List", :style ui/button, :on-click (fn [e d! m!] (d! :load-top10 nil))})
+      {:inner-text "List", :style ui/button, :on-click (fn [e d!] (d! :load-top10 nil))})
      (div
       {}
       (input
        {:value (:text state),
         :style ui/input,
         :placeholder "an id to load topic...",
-        :on-input (fn [e d! m!] (m! (assoc state :text (:value e))))})
+        :on-input (fn [e d!] (d! cursor (assoc state :text (:value e))))})
       (=< 8 nil)
       (button
        {:inner-text "Load",
         :style ui/button,
-        :on-click (fn [e d! m!]
+        :on-click (fn [e d!]
           (d! :load-topic (:text state))
           (d! :router {:data [(:text state)]}))})))
     (if (empty? (:top10 resource))
@@ -318,9 +318,7 @@
               (comp-topic
                topic
                {}
-               (fn [e d! m!]
-                 (d! :load-topic (:id topic))
-                 (d! :router {:data [(:id topic)]})))]))))
+               (fn [e d!] (d! :load-topic (:id topic)) (d! :router {:data [(:id topic)]})))]))))
     (div
      {:style {:padding "16px 16px"}}
      (div {} (<> "HN Reader on GitHub"))
@@ -341,9 +339,9 @@
  (let [store (:store reel), states (:states store), router (:router store)]
    (div
     {:style (merge ui/fullscreen ui/global ui/row {:overflow-x :auto})}
-    (cursor-> :topics comp-topic-list states resource)
+    (comp-topic-list (>> states :topics) resource)
     (let [topic (get-in resource [:topics (first (:data router))])] (comp-frame topic))
     (comp-comment-list router resource)
     (=< 600 nil)
     (when dev? (comp-inspect "store" store {:bottom 0}))
-    (when dev? (cursor-> :reel comp-reel states reel {})))))
+    (when dev? (comp-reel (>> states :reel) reel {})))))
