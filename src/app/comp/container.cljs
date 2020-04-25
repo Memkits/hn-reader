@@ -7,7 +7,7 @@
              [defcomp
               defeffect
               create-element
-              cursor->
+              >>
               <>
               div
               list->
@@ -22,7 +22,9 @@
             [respo-md.comp.md :refer [comp-md]]
             [app.config :refer [dev?]]
             [respo.comp.inspect :refer [comp-inspect]]
-            ["dayjs" :as dayjs])
+            ["dayjs" :as dayjs]
+            [respo-alerts.core :refer [use-prompt]]
+            [cumulo-util.core :refer [delay!]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defcomp
@@ -183,7 +185,7 @@
                (div
                 {:style (merge
                          ui/column
-                         {:width 640, :height "100%", :overflow-y :auto, :margin-right 16})}
+                         {:width 540, :height "100%", :overflow-y :auto, :margin-right 16})}
                 (if (zero? idx)
                   (comp-topic-parent (get-in resource [:topics parent-id]))
                   (comp-reply-parent (get-in resource [:replies parent-id])))
@@ -203,27 +205,35 @@
                                 {:data (conj (subvec coord 0 (inc idx)) (:id reply))})
                                (d! :load-reply (:id reply)))))]))))))]))))))
 
+(defeffect
+ effect-load
+ (topic)
+ (action el *local at-place?)
+ (let [target (.querySelector el "#frame")]
+   (when (or (= action :mount) (= action :update))
+     (.setAttribute target "src" "data:,setting%20iframe...")
+     (delay! 0.03 (fn [] (.setAttribute target "src" (:url topic)))))))
+
 (defcomp
  comp-frame
  (topic)
  (if (some? topic)
-   (div
-    {:style (merge
-             ui/column
-             {:width 600, :background-color (hsl 0 0 100), :margin-right 16})}
+   [(effect-load topic)
     (div
-     {:style {:padding "0 8px",
-              :overflow :hidden,
-              :width "100%",
-              :background-color :white,
-              :white-space :nowrap,
-              :border-bottom (str "1px solid " (hsl 0 0 90))}}
-     (a {:inner-text (:url topic), :href (:url topic), :target "_blank"}))
-    (create-element
-     :object
-     {:style (merge ui/expand {:border :none}),
-      :data (:url topic),
-      :innerHTML "Not loaded."}))
+     {:style (merge
+              ui/column
+              {:width 720, :background-color (hsl 0 0 100), :margin-right 16})}
+     (div
+      {:style {:padding "0 8px",
+               :overflow :hidden,
+               :width "100%",
+               :background-color :white,
+               :white-space :nowrap,
+               :border-bottom (str "1px solid " (hsl 0 0 90))}}
+      (a {:inner-text (:url topic), :href (:url topic), :target "_blank"}))
+     (create-element
+      :iframe
+      {:style (merge ui/expand {:border :none}), :id "frame", :innerHTML "Not loaded."}))]
    (span nil)))
 
 (defcomp
@@ -274,36 +284,37 @@
 (defcomp
  comp-topic-list
  (states resource)
- (let [state (or (:data states) {:text ""})]
+ (let [cursor (:cursor states)
+       state (or (:data states) {})
+       no-list? (empty? (:top10 resource))
+       load-plugin (use-prompt
+                    (>> states :load)
+                    {:text "Topic id:", :placeholder "use number id from hacker news url"})]
    (div
     {:style (merge
              ui/column
-             {:width 440,
+             {:width (if no-list? 140 400),
               :height "100%",
               :white-space :nowrap,
               :overflow :auto,
               :margin-right 16})}
     (div
      {:style (merge
-              ui/row-parted
+              ui/row-middle
               {:padding 16, :border-bottom (str "1px solid " (hsl 0 0 90))})}
-     (button
-      {:inner-text "List", :style ui/button, :on-click (fn [e d! m!] (d! :load-top10 nil))})
+     (a {:inner-text "List", :style ui/link, :on-click (fn [e d!] (d! :load-top10 nil))})
+     (=< nil 8)
      (div
       {}
-      (input
-       {:value (:text state),
-        :style ui/input,
-        :placeholder "an id to load topic...",
-        :on-input (fn [e d! m!] (m! (assoc state :text (:value e))))})
       (=< 8 nil)
-      (button
+      (a
        {:inner-text "Load",
-        :style ui/button,
-        :on-click (fn [e d! m!]
-          (d! :load-topic (:text state))
-          (d! :router {:data [(:text state)]}))})))
-    (if (empty? (:top10 resource))
+        :style ui/link,
+        :on-click (fn [e d!]
+          ((:show load-plugin)
+           d!
+           (fn [text] (d! :load-topic text) (d! :router {:data [text]}))))})))
+    (if no-list?
       (<>
        (str "Empty list yet.")
        {:color (hsl 0 0 80), :padding 8, :font-family ui/font-fancy}))
@@ -318,9 +329,7 @@
               (comp-topic
                topic
                {}
-               (fn [e d! m!]
-                 (d! :load-topic (:id topic))
-                 (d! :router {:data [(:id topic)]})))]))))
+               (fn [e d!] (d! :load-topic (:id topic)) (d! :router {:data [(:id topic)]})))]))))
     (div
      {:style {:padding "16px 16px"}}
      (div {} (<> "HN Reader on GitHub"))
@@ -333,7 +342,8 @@
                 :font-family ui/font-fancy},
         :target "_blank",
         :inner-text "https://github.com/Memkits/hn-reader",
-        :href "https://github.com/Memkits/hn-reader"}))))))
+        :href "https://github.com/Memkits/hn-reader"})))
+    (:ui load-plugin))))
 
 (defcomp
  comp-container
@@ -341,9 +351,9 @@
  (let [store (:store reel), states (:states store), router (:router store)]
    (div
     {:style (merge ui/fullscreen ui/global ui/row {:overflow-x :auto})}
-    (cursor-> :topics comp-topic-list states resource)
+    (comp-topic-list (>> states :topics) resource)
     (let [topic (get-in resource [:topics (first (:data router))])] (comp-frame topic))
     (comp-comment-list router resource)
     (=< 600 nil)
     (when dev? (comp-inspect "store" store {:bottom 0}))
-    (when dev? (cursor-> :reel comp-reel states reel {})))))
+    (when dev? (comp-reel (>> states :reel) reel {})))))
