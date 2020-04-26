@@ -24,7 +24,8 @@
             [respo.comp.inspect :refer [comp-inspect]]
             ["dayjs" :as dayjs]
             [respo-alerts.core :refer [use-prompt]]
-            [cumulo-util.core :refer [delay!]])
+            [cumulo-util.core :refer [delay!]]
+            [feather.core :refer [comp-icon]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defcomp
@@ -97,13 +98,12 @@
 
 (defcomp
  comp-reply-parent
- (reply)
+ (reply on-close)
  (if (nil? reply)
    (div {} (<> (str "data required") {:color (hsl 0 0 80), :padding 8}))
    (div
     {:style {:padding 16,
              :border-bottom (str "1px solid " (hsl 0 0 90)),
-             :cursor :pointer,
              :max-height 200,
              :overflow :hidden,
              :text-overflow :ellipsis,
@@ -117,12 +117,18 @@
               :text-overflow :ellipsis,
               :font-size 16}})
     (div
-     {:style {:color (hsl 0 0 60)}}
-     (<> (str "@" (:by reply)))
-     (=< 8 nil)
-     (comp-time (:time reply))
-     (=< 8 nil)
-     (<> (str "Comments: " (count (:kids reply))))))))
+     {:style ui/row-parted}
+     (div
+      {:style {:color (hsl 0 0 60)}}
+      (<> (str "@" (:by reply)))
+      (=< 8 nil)
+      (comp-time (:time reply))
+      (=< 8 nil)
+      (<> (str "Comments: " (count (:kids reply)))))
+     (comp-icon
+      :x
+      {:font-size 14, :color (hsl 200 80 80), :cursor :pointer}
+      (fn [e d!] (on-close d!)))))))
 
 (defcomp
  comp-topic-parent
@@ -188,7 +194,9 @@
                          {:width 540, :height "100%", :overflow-y :auto, :margin-right 16})}
                 (if (zero? idx)
                   (comp-topic-parent (get-in resource [:topics parent-id]))
-                  (comp-reply-parent (get-in resource [:replies parent-id])))
+                  (comp-reply-parent
+                   (get-in resource [:replies parent-id])
+                   (fn [d!] (d! :router {:data (subvec coord 0 idx)}))))
                 (list->
                  {:style (merge ui/expand {:padding "40px 0 100px 0"})}
                  (->> kids
