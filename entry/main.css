@@ -1,7 +1,7 @@
 
 body {
   margin: 0;
-  background-color: hsl(0,0%,97%);
+  background-color: hsl(0,0%,95%);
   overscroll-behavior-y: none;
   overscroll-behavior-x: none;
 }
@@ -21,7 +21,7 @@ body * {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: hsla(100,10%,46%,0.3);
+  background-color: hsla(100,10%,46%,0.1);
 }
 
 ::-webkit-scrollbar-corner {

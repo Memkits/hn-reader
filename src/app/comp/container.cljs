@@ -24,7 +24,8 @@
             [respo.comp.inspect :refer [comp-inspect]]
             ["dayjs" :as dayjs]
             [respo-alerts.core :refer [use-prompt]]
-            [cumulo-util.core :refer [delay!]])
+            [cumulo-util.core :refer [delay!]]
+            [feather.core :refer [comp-icon]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defcomp
@@ -50,13 +51,16 @@
      (div
       {:style (merge
                {:padding 16,
-                :border (str "1px solid " (hsl 0 0 90)),
-                :border-bottom (str "1px solid " (hsl 0 0 80)),
-                :background-color :white,
-                :margin-bottom 16}
+                :border-color (hsl 0 0 88),
+                :border-style :solid,
+                :border-width "1px 1px 2px 1px",
+                :background-color (hsl 0 0 99),
+                :margin-bottom 16,
+                :border-radius "2px"}
                (if selected?
-                 {:border (str "1px solid " (hsl 0 0 70)),
-                  :border-bottom (str "2px solid " (hsl 0 0 62))})),
+                 {:border-color (hsl 0 0 74),
+                  :background-color (hsl 0 0 100),
+                  :box-shadow (str "1px 2px 5px " (hsl 0 0 0 0.4))})),
        :class-name "hoverable reply"}
       (div
        {:style ui/row-parted}
@@ -89,7 +93,8 @@
                      :color :white,
                      :padding "0 12px",
                      :border-radius "16px",
-                     :cursor :pointer},
+                     :cursor :pointer,
+                     :user-select :none},
              :on-click (fn [e d! m!] (if has-kids (on-click e d! m!)))}
             (<> (str "Comments: ") {:font-family ui/font-fancy, :font-size 12})
             (<> size))
@@ -97,17 +102,16 @@
 
 (defcomp
  comp-reply-parent
- (reply)
+ (reply on-close)
  (if (nil? reply)
    (div {} (<> (str "data required") {:color (hsl 0 0 80), :padding 8}))
    (div
     {:style {:padding 16,
              :border-bottom (str "1px solid " (hsl 0 0 90)),
-             :cursor :pointer,
              :max-height 200,
              :overflow :hidden,
              :text-overflow :ellipsis,
-             :background-color (hsl 0 0 90)}}
+             :background-color (hsl 0 0 100)}}
     (div
      {:innerHTML (:text reply),
       :style {:line-height "22px",
@@ -117,12 +121,18 @@
               :text-overflow :ellipsis,
               :font-size 16}})
     (div
-     {:style {:color (hsl 0 0 60)}}
-     (<> (str "@" (:by reply)))
-     (=< 8 nil)
-     (comp-time (:time reply))
-     (=< 8 nil)
-     (<> (str "Comments: " (count (:kids reply))))))))
+     {:style ui/row-parted}
+     (div
+      {:style {:color (hsl 0 0 60)}}
+      (<> (str "@" (:by reply)))
+      (=< 8 nil)
+      (comp-time (:time reply))
+      (=< 8 nil)
+      (<> (str "Comments: " (count (:kids reply)))))
+     (comp-icon
+      :x
+      {:font-size 14, :color (hsl 200 80 80), :cursor :pointer}
+      (fn [e d!] (on-close d!)))))))
 
 (defcomp
  comp-topic-parent
@@ -133,8 +143,8 @@
     {:class-name "hoverable",
      :style {:padding 16,
              :cursor :default,
-             :border-bottom (str "1px solid " (hsl 0 0 93)),
-             :background-color (hsl 0 0 90)}}
+             :border-bottom (str "1px solid " (hsl 0 0 90)),
+             :background-color (hsl 0 0 100)}}
     (div
      {:style ui/row-parted}
      (div
@@ -185,12 +195,14 @@
                (div
                 {:style (merge
                          ui/column
-                         {:width 540, :height "100%", :overflow-y :auto, :margin-right 16})}
+                         {:width 540, :height "100%", :overflow-y :auto, :margin-right 8})}
                 (if (zero? idx)
                   (comp-topic-parent (get-in resource [:topics parent-id]))
-                  (comp-reply-parent (get-in resource [:replies parent-id])))
+                  (comp-reply-parent
+                   (get-in resource [:replies parent-id])
+                   (fn [d!] (d! :router {:data (subvec coord 0 idx)}))))
                 (list->
-                 {:style (merge ui/expand {:padding "40px 0 100px 0"})}
+                 {:style (merge ui/expand {:padding "40px 4px 100px 4px"})}
                  (->> kids
                       (map
                        (fn [reply-id]
@@ -222,7 +234,7 @@
     (div
      {:style (merge
               ui/column
-              {:width 720, :background-color (hsl 0 0 100), :margin-right 16})}
+              {:width 720, :background-color (hsl 0 0 100), :margin-right 8})}
      (div
       {:style {:padding "0 8px",
                :overflow :hidden,
@@ -297,7 +309,7 @@
               :height "100%",
               :white-space :nowrap,
               :overflow :auto,
-              :margin-right 16})}
+              :margin-right 8})}
     (div
      {:style (merge
               ui/row-middle
