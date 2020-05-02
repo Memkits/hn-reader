@@ -50,7 +50,7 @@
    (let [has-kids (pos? (count (:kids reply)))]
      (div
       {:style (merge
-               {:padding 16,
+               {:padding "8px 16px",
                 :border-color (hsl 0 0 88),
                 :border-style :solid,
                 :border-width "1px 1px 2px 1px",
@@ -78,7 +78,7 @@
          :style {:font-family ui/font-fancy}}))
       (div
        {:innerHTML (:text reply),
-        :style {:line-height "22px"},
+        :style {:line-height "20px"},
         :on-click (fn [e d! m!]
           (if (= "A" (-> e :event .-target .-tagName))
             (do (-> e :event .preventDefault) (-> e :event .-target .-href js/window.open))))})
@@ -106,8 +106,8 @@
  (if (nil? reply)
    (div {} (<> (str "data required") {:color (hsl 0 0 80), :padding 8}))
    (div
-    {:style {:padding 16,
-             :border-bottom (str "1px solid " (hsl 0 0 90)),
+    {:style {:padding "8px 16px",
+             :border-bottom (str "1px solid " (hsl 0 0 80)),
              :max-height 200,
              :overflow :hidden,
              :text-overflow :ellipsis,
@@ -121,7 +121,7 @@
               :text-overflow :ellipsis,
               :font-size 16}})
     (div
-     {:style ui/row-parted}
+     {:style (merge ui/row-parted {:line-height "20px"})}
      (div
       {:style {:color (hsl 0 0 60)}}
       (<> (str "@" (:by reply)))
@@ -141,14 +141,14 @@
    (div {} (<> "loading..." {:color (hsl 0 0 80), :padding 8}))
    (div
     {:class-name "hoverable",
-     :style {:padding 16,
+     :style {:padding "8px 16px",
              :cursor :default,
-             :border-bottom (str "1px solid " (hsl 0 0 90)),
+             :border-bottom (str "1px solid " (hsl 0 0 80)),
              :background-color (hsl 0 0 100)}}
     (div
      {:style ui/row-parted}
      (div
-      {:style ui/row-parted}
+      {:style (merge ui/expand ui/row-parted)}
       (<>
        (:score topic)
        {:display :inline-block,
@@ -160,13 +160,18 @@
         :border-radius "16px",
         :font-family ui/font-fancy})
       (=< 8 nil)
-      (<> (:title topic) {:font-size 16}))
+      (<>
+       (:title topic)
+       (merge
+        ui/expand
+        {:font-size 16, :text-overflow :ellipsis, :overflow :hidden, :white-space :nowrap})))
+     (=< 8 nil)
      (a
       {:href (str "https://news.ycombinator.com/item?id=" (:id topic)),
        :inner-text "link",
        :target "_blank"}))
     (div
-     {:style {:color (hsl 0 0 50), :font-family ui/font-fancy}}
+     {:style {:color (hsl 0 0 50), :font-family ui/font-fancy, :line-height "20px"}}
      (a {:inner-text (str "@" (:by topic))})
      (=< 12 nil)
      (<> (str "Comments: " (count (:kids topic))))
@@ -195,14 +200,14 @@
                (div
                 {:style (merge
                          ui/column
-                         {:width 540, :height "100%", :overflow-y :auto, :margin-right 8})}
+                         {:width 500, :height "100%", :overflow-y :auto, :margin-right 8})}
                 (if (zero? idx)
                   (comp-topic-parent (get-in resource [:topics parent-id]))
                   (comp-reply-parent
                    (get-in resource [:replies parent-id])
                    (fn [d!] (d! :router {:data (subvec coord 0 idx)}))))
                 (list->
-                 {:style (merge ui/expand {:padding "40px 4px 100px 4px"})}
+                 {:style (merge ui/expand {:padding "40px 4px 160px 4px"})}
                  (->> kids
                       (map
                        (fn [reply-id]
@@ -234,14 +239,14 @@
     (div
      {:style (merge
               ui/column
-              {:width 720, :background-color (hsl 0 0 100), :margin-right 8})}
+              {:width 640, :background-color (hsl 0 0 100), :margin-right 8})}
      (div
       {:style {:padding "0 8px",
                :overflow :hidden,
                :width "100%",
-               :background-color :white,
+               :background-color (hsl 0 0 95),
                :white-space :nowrap,
-               :border-bottom (str "1px solid " (hsl 0 0 90))}}
+               :border-bottom (str "1px solid " (hsl 0 0 86))}}
       (a {:inner-text (:url topic), :href (:url topic), :target "_blank"}))
      (create-element
       :iframe
@@ -295,7 +300,7 @@
 
 (defcomp
  comp-topic-list
- (states resource)
+ (states resource focus-id)
  (let [cursor (:cursor states)
        state (or (:data states) {})
        no-list? (empty? (:top10 resource))
@@ -313,19 +318,18 @@
     (div
      {:style (merge
               ui/row-middle
-              {:padding 16, :border-bottom (str "1px solid " (hsl 0 0 90))})}
+              {:padding "8px 16px",
+               :border-bottom (str "1px solid " (hsl 0 0 90)),
+               :justify-content :flex-end})}
      (a {:inner-text "List", :style ui/link, :on-click (fn [e d!] (d! :load-top10 nil))})
-     (=< nil 8)
-     (div
-      {}
-      (=< 8 nil)
-      (a
-       {:inner-text "Load",
-        :style ui/link,
-        :on-click (fn [e d!]
-          ((:show load-plugin)
-           d!
-           (fn [text] (d! :load-topic text) (d! :router {:data [text]}))))})))
+     (=< 8 nil)
+     (a
+      {:inner-text "Load",
+       :style ui/link,
+       :on-click (fn [e d!]
+         ((:show load-plugin)
+          d!
+          (fn [text] (d! :load-topic text) (d! :router {:data [text]}))))}))
     (if no-list?
       (<>
        (str "Empty list yet.")
@@ -340,7 +344,7 @@
              [(:id topic)
               (comp-topic
                topic
-               {}
+               (if (= (:id topic) focus-id) {:background-color :white} {})
                (fn [e d!] (d! :load-topic (:id topic)) (d! :router {:data [(:id topic)]})))]))))
     (div
      {:style {:padding "16px 16px"}}
@@ -363,7 +367,7 @@
  (let [store (:store reel), states (:states store), router (:router store)]
    (div
     {:style (merge ui/fullscreen ui/global ui/row {:overflow-x :auto})}
-    (comp-topic-list (>> states :topics) resource)
+    (comp-topic-list (>> states :topics) resource (first (:data router)))
     (let [topic (get-in resource [:topics (first (:data router))])] (comp-frame topic))
     (comp-comment-list router resource)
     (=< 600 nil)
