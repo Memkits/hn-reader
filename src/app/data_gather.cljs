@@ -42,7 +42,7 @@
   (swap! *resource assoc :top10 [])
   (go
    (let [top-ids (take
-                  20
+                  30
                   (<!
                    (chan-get!
                     "https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty")))]
