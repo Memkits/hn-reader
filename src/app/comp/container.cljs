@@ -46,7 +46,16 @@
               el)
          voices (js/speechSynthesis.getVoices)
          samantha-voice (.find voices (fn [v] (= (.-voiceURI v) "Samantha")))
-         instance (js/SpeechSynthesisUtterance. (.-innerText el))]
+         sentence (string/replace
+                   (.-innerText el)
+                   #"https?:\S+"
+                   (fn [x]
+                     (let [url (js/URL. x)]
+                       (if (some? url)
+                         (str " link to " (string/replace (.-host url) "www." "") " ")
+                         "link "))))
+         instance (js/SpeechSynthesisUtterance. sentence)]
+     (println (pr-str sentence))
      (set! (.-rate instance) 1)
      (set! (.-voice instance) samantha-voice)
      (.cancel js/speechSynthesis)
