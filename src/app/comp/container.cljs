@@ -25,7 +25,8 @@
             ["dayjs" :as dayjs]
             [respo-alerts.core :refer [use-prompt]]
             [cumulo-util.core :refer [delay!]]
-            [feather.core :refer [comp-icon]])
+            [feather.core :refer [comp-icon]]
+            [clojure.string :as string])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defcomp
@@ -37,6 +38,20 @@
        (<> (.format time-obj "MM-DD HH:mm"))
        (<> (.format time-obj "YYYY-MM-DD HH:mm"))))
    (<> "nil")))
+
+(defn read-text! [html]
+  (try
+   (let [el (let [el (js/document.createElement "pre")]
+              (set! (.-innerHTML el) (string/replace html "<p>" (str "\n" "<p>")))
+              el)
+         voices (js/speechSynthesis.getVoices)
+         samantha-voice (.find voices (fn [v] (= (.-voiceURI v) "Samantha")))
+         instance (js/SpeechSynthesisUtterance. (.-innerText el))]
+     (set! (.-rate instance) 1)
+     (set! (.-voice instance) samantha-voice)
+     (.cancel js/speechSynthesis)
+     (.speak js/speechSynthesis instance))
+   (catch js/Error e (js/alert (str "Failed: " (.toString e))))))
 
 (defcomp
  comp-reply
@@ -77,19 +92,7 @@
         (comp-icon
          :volume-1
          {:font-size 18, :color (hsl 200 80 70), :cursor :pointer}
-         (fn [e d!]
-           (try
-            (let [el (let [el (js/document.createElement "span")]
-                       (set! (.-innerHTML el) (:text reply))
-                       el)
-                  voices (js/speechSynthesis.getVoices)
-                  samantha-voice (.find voices (fn [v] (= (.-voiceURI v) "Samantha")))
-                  instance (js/SpeechSynthesisUtterance. (.-innerText el))]
-              (set! (.-rate instance) 1)
-              (set! (.-voice instance) samantha-voice)
-              (.cancel js/speechSynthesis)
-              (.speak js/speechSynthesis instance))
-            (catch js/Error e (js/alert (str "Failed: " (.toString e))))))))
+         (fn [e d!] (read-text! (:text reply)))))
        (a
         {:href (<< "https://news.ycombinator.com/item?id=~(:id reply)"),
          :inner-text "link",
