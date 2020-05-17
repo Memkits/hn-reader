@@ -1,13 +1,13 @@
 
 chrome.browserAction.onClicked.addListener(() => {
-  chrome.tabs.query({active: true} ,(tabs) => {
+  chrome.tabs.query({active: true}, (tabs) => {
     tabs.forEach(tab => {
-      let obj  = new URL(tab.url)
+      let obj = new URL(tab.url)
+      let urlParams = new URLSearchParams(obj.search);
       if (obj.hostname === 'news.ycombinator.com') {
-        console.log("A hacker news tab", obj)
-        if (obj.search.startsWith('?id=')) {
-          let id = obj.search.slice(4)
-          chrome.tabs.update(tab.id, {url: `http://repo.memkits.org/hn-reader/?id=${id}`})
+        console.log("A hacker news tab")
+        if (urlParams.has('id') && !urlParams.has('noRedirect')) {
+          chrome.tabs.update(tab.id, {url: `http://repo.memkits.org/hn-reader/?id=${urlParams.get('id')}`})
         }
       }
     })

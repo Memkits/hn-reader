@@ -7,9 +7,18 @@
      "persistent": false
   },
   "icons": {"128": "hn-reader-132.png" },
-  "permissions": ["tabs"],
+  "permissions": [
+    "tabs",
+    "activeTab"
+  ],
   "browser_action": {
       "name": "Read in HN reader"
   },
+  "content_scripts": [
+   {
+     "matches": ["https://news.ycombinator.com/*"],
+     "js": ["content.js"]
+   }
+ ],
   "manifest_version": 2
 }
