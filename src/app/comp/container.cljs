@@ -103,7 +103,7 @@
          {:font-size 18, :color (hsl 200 80 70), :cursor :pointer}
          (fn [e d!] (read-text! (:text reply)))))
        (a
-        {:href (<< "https://news.ycombinator.com/item?id=~(:id reply)"),
+        {:href (<< "https://news.ycombinator.com/item?id=~(:id reply)&noRedirect=true"),
          :inner-text "link",
          :target "_blank",
          :style {:font-family ui/font-fancy}}))

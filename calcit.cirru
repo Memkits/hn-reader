@@ -2638,7 +2638,7 @@
                                           |j $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1581239974762)
                                             :data $ {}
                                               |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581239977261) (:text |<<) (:id |QFsTFe7_)
-                                              |j $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1581240003302) (:text "|\"https://news.ycombinator.com/item?id=~(:id reply)") (:id |pSTCDA7oM)
+                                              |j $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1589730263237) (:text "|\"https://news.ycombinator.com/item?id=~(:id reply)&noRedirect=true") (:id |pSTCDA7oM)
                                             :id |HEEonPoZj
                                         :id |XwfjKFaC
                                       |r $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1581240005810)
