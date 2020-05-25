@@ -198,7 +198,7 @@
         {:font-size 16, :text-overflow :ellipsis, :overflow :hidden, :white-space :nowrap})))
      (=< 8 nil)
      (a
-      {:href (str "https://news.ycombinator.com/item?id=" (:id topic)),
+      {:href (str "https://news.ycombinator.com/item?id=" (:id topic) "&noRedirect=true"),
        :inner-text "link",
        :target "_blank"}))
     (div
@@ -259,8 +259,18 @@
  (action el *local at-place?)
  (let [target (.querySelector el "#frame")]
    (when (or (= action :mount) (= action :update))
-     (.setAttribute target "src" "data:,setting%20iframe...")
-     (delay! 0.03 (fn [] (.setAttribute target "src" (:url topic)))))))
+     (if (some? (:url topic))
+       (do
+        (.setAttribute
+         target
+         "src"
+         (str "data:," (js/encodeURIComponent "setting iframe...")))
+        (when (some? (:url topic))
+          (delay! 0.03 (fn [] (.setAttribute target "src" (:url topic))))))
+       (.setAttribute
+        target
+        "src"
+        (str "data:," (js/encodeURIComponent "no url to display.")))))))
 
 (defcomp
  comp-frame
