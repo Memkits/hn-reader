@@ -42,7 +42,11 @@
 (defn read-text! [html]
   (try
    (let [el (let [el (js/document.createElement "pre")]
-              (set! (.-innerHTML el) (string/replace html "<p>" (str "\n" "<p>")))
+              (set!
+               (.-innerHTML el)
+               (-> html
+                   (string/replace "<p>" (str "\n" "<p>"))
+                   (string/replace "<li>" (str "\n" "<li>"))))
               el)
          voices (js/speechSynthesis.getVoices)
          samantha-voice (.find voices (fn [v] (= (.-voiceURI v) "Samantha")))
