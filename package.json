@@ -19,10 +19,10 @@
   "license": "MIT",
   "devDependencies": {
     "coffeescript": "^2.5.1",
-    "shadow-cljs": "^2.9.10"
+    "shadow-cljs": "^2.10.3"
   },
   "dependencies": {
-    "dayjs": "^1.8.27",
+    "dayjs": "^1.8.28",
     "feather-icons": "^4.28.0",
     "shortid": "^2.2.15"
   }
