@@ -415,6 +415,6 @@
     (comp-topic-list (>> states :topics) resource (first (:data router)))
     (let [topic (get-in resource [:topics (first (:data router))])] (comp-frame topic))
     (comp-comment-list router resource)
-    (=< 600 nil)
+    (div {:style {:width "80vw"}})
     (when dev? (comp-inspect "store" store {:bottom 0}))
     (when dev? (comp-reel (>> states :reel) reel {})))))
