@@ -7,7 +7,7 @@ chrome.browserAction.onClicked.addListener(() => {
       if (obj.hostname === 'news.ycombinator.com') {
         console.log("A hacker news tab")
         if (urlParams.has('id') && !urlParams.has('noRedirect')) {
-          chrome.tabs.update(tab.id, {url: `http://repo.memkits.org/hn-reader/?id=${urlParams.get('id')}`})
+          chrome.tabs.update(tab.id, {url: `http://r.tiye.me/Memkits/hn-reader/?id=${urlParams.get('id')}`})
         }
       }
     })
