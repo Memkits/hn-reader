@@ -125,11 +125,11 @@
             if (some? time)
               let
                   time-obj $ dayjs (* 1000 time)
-                  year $ .getFullYear (new js/Date)
+                  year $ .!getFullYear (new js/Date)
                 if
-                  = (str year) (.format time-obj "\"YYYY")
-                  <> $ .format time-obj "\"MM-DD HH:mm"
-                  <> $ .format time-obj "\"YYYY-MM-DD HH:mm"
+                  = (str year) (.!format time-obj "\"YYYY")
+                  <> $ .!format time-obj "\"MM-DD HH:mm"
+                  <> $ .!format time-obj "\"YYYY-MM-DD HH:mm"
               <> "\"nil"
         |comp-topic-parent $ quote
           defcomp comp-topic-parent (topic)
@@ -387,36 +387,35 @@
                                     d! :load-reply $ :id reply
         |read-text! $ quote
           defn read-text! (html)
-            try
-              let
-                  el $ let
-                      el $ js/document.createElement "\"pre"
-                    set! (.-innerHTML el)
-                      -> html
-                        .replace "\"<p>" $ str &newline "\"<p>"
-                        .replace "\"<li>" $ str &newline "\"<li>"
-                    , el
-                  voices $ js/speechSynthesis.getVoices
-                  samantha-voice $ .find voices
-                    fn (v)
-                      = (.-voiceURI v) "\"Samantha"
-                  sentence $ .replace (.-innerText el) url-pattern
-                    fn (x)
-                      let
-                          url $ new js/URL x
-                        if (some? url)
-                          str "\" link to "
-                            .replace (.-host url) "\"www." "\""
-                            , "\" "
-                          , "\"link "
-                  instance $ new js/SpeechSynthesisUtterance sentence
-                println $ pr-str sentence
-                set! (.-rate instance) 1
-                set! (.-voice instance) samantha-voice
-                .cancel js/speechSynthesis
-                .speak js/speechSynthesis instance
-              fn (e)
-                js/alert $ str "\"Failed: " (.toString e)
+            let
+                voices $ js/speechSynthesis.getVoices
+                samantha-voice $ .!find voices
+                  fn (v idx d)
+                    = (.-voiceURI v) "\"Samantha"
+                sentence $ .!replace (html->readable html) url-pattern
+                  fn (x & args)
+                    let
+                        url $ new js/URL x
+                      if (some? url)
+                        str "\" link to "
+                          .!replace (.-host url) "\"www." "\""
+                          , "\" "
+                        , "\"link "
+                instance $ new js/SpeechSynthesisUtterance sentence
+              println $ pr-str sentence
+              set! (.-rate instance) 1
+              set! (.-voice instance) samantha-voice
+              .!cancel js/speechSynthesis
+              .!speak js/speechSynthesis instance
+        |html->readable $ quote
+          defn html->readable (html)
+            let
+                el $ js/document.createElement "\"pre"
+              set! (.-innerHTML el)
+                -> html
+                  .!replace "\"<p>" $ str &newline "\"<p>"
+                  .!replace "\"<li>" $ str &newline "\"<li>"
+              .-innerText el
         |comp-topic-list $ quote
           defcomp comp-topic-list (states resource focus-id)
             let
@@ -480,18 +479,18 @@
         |effect-load $ quote
           defeffect effect-load (topic) (action el *local at-place?)
             let
-                target $ .querySelector el "\"#frame"
+                target $ .!querySelector el "\"#frame"
               when
                 or (= action :mount) (= action :update)
                 if
                   some? $ :url topic
                   do
-                    .setAttribute target "\"src" $ str "\"data:," (js/encodeURIComponent "\"setting iframe...")
+                    .!setAttribute target "\"src" $ str "\"data:," (js/encodeURIComponent "\"setting iframe...")
                     when
                       some? $ :url topic
                       timeout-call 30 $ fn ()
-                        .setAttribute target "\"src" $ :url topic
-                  .setAttribute target "\"src" $ str "\"data:," (js/encodeURIComponent "\"no url to display.")
+                        .!setAttribute target "\"src" $ :url topic
+                  .!setAttribute target "\"src" $ str "\"data:," (js/encodeURIComponent "\"no url to display.")
         |url-pattern $ quote
           def url-pattern $ new js/RegExp "\"https?:\\S+"
         |comp-reply-parent $ quote
@@ -569,10 +568,7 @@
           "\"bottom-tip" :default hud!
       :defs $ {}
         |render-app! $ quote
-          defn render-app! (renderer)
-            renderer mount-target (comp-container @*reel @*resource) dispatch!
-        |ssr? $ quote
-          def ssr? $ some? (js/document.querySelector |meta.respo-ssr)
+          defn render-app! () $ render! mount-target (comp-container @*reel @*resource) dispatch!
         |persist-storage! $ quote
           defn persist-storage! (e)
             .setItem js/localStorage (:storage-key config/site)
@@ -585,12 +581,11 @@
           defn main! ()
             if config/dev? $ load-console-formatter!
             println "\"Running mode:" $ if config/dev? "\"dev" "\"release"
-            if ssr? $ render-app! realize-ssr!
-            render-app! render!
-            add-watch *reel :changes $ fn (r p) (render-app! render!)
-            add-watch *resource :changes $ fn (r p) (render-app! render!)
-            listen-devtools! |a dispatch!
-            .addEventListener js/window |beforeunload persist-storage!
+            render-app!
+            add-watch *reel :changes $ fn (r p) (render-app!)
+            add-watch *resource :changes $ fn (r p) (render-app!)
+            listen-devtools! |k dispatch!
+            .!addEventListener js/window |beforeunload persist-storage!
             ; let
                 raw $ .getItem js/localStorage (:storage-key config/site)
               when (some? raw)
