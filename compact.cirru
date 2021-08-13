@@ -94,11 +94,12 @@
           [] respo.comp.space :refer $ [] =<
           [] reel.comp.reel :refer $ [] comp-reel
           [] respo-md.comp.md :refer $ [] comp-md
-          [] app.config :refer $ [] dev?
+          [] app.config :refer $ [] dev? audio-target audio-host
           [] respo.comp.inspect :refer $ [] comp-inspect
           [] "\"dayjs" :default dayjs
           [] respo-alerts.core :refer $ [] use-prompt
           [] feather.core :refer $ [] comp-icon
+          "\"../entry/play-audio" :refer $ requstAudioSpeech
       :defs $ {}
         |comp-container $ quote
           defcomp comp-container (reel resource)
@@ -257,7 +258,10 @@
                           :color $ hsl 200 80 70
                           :cursor :pointer
                         fn (e d!)
-                          read-text! $ :text reply
+                          case-default audio-target
+                            read-text! $ html->readable (:text reply)
+                            "\"api" $ speech-via-api!
+                              html->readable $ :text reply
                     a $ {}
                       :href $ str "\"https://news.ycombinator.com/item?id=" (:id reply) "\"&noRedirect=true"
                       :inner-text "\"link"
@@ -386,13 +390,13 @@
                                         :id reply
                                     d! :load-reply $ :id reply
         |read-text! $ quote
-          defn read-text! (html)
+          defn read-text! (text)
             let
                 voices $ js/speechSynthesis.getVoices
                 samantha-voice $ .!find voices
                   fn (v idx d)
                     = (.-voiceURI v) "\"Samantha"
-                sentence $ .!replace (html->readable html) url-pattern
+                sentence $ .!replace text url-pattern
                   fn (x & args)
                     let
                         url $ new js/URL x
@@ -407,6 +411,9 @@
               set! (.-voice instance) samantha-voice
               .!cancel js/speechSynthesis
               .!speak js/speechSynthesis instance
+        |speech-via-api! $ quote
+          defn speech-via-api! (text)
+            requstAudioSpeech audio-host text $ fn () (println "\"read.")
         |html->readable $ quote
           defn html->readable (html)
             let
@@ -621,3 +628,7 @@
           def dev? $ = "\"dev" (get-env "\"mode")
         |site $ quote
           def site $ {} (:dev-ui "\"http://localhost:8100/main-fonts.css") (:release-ui "\"http://cdn.tiye.me/favored-fonts/main-fonts.css") (:cdn-url "\"http://cdn.tiye.me/hn-reader/") (:title "\"HN Reader") (:icon "\"http://cdn.tiye.me/logo/memkits.png") (:storage-key "\"hn-reader")
+        |audio-target $ quote
+          def audio-target $ get-env "\"audio-target"
+        |audio-host $ quote
+          def audio-host $ get-env "\"audio-host"
