@@ -1,5 +1,5 @@
 {
-  "name": "calcit-workflow",
+  "name": "hn-reader",
   "version": "0.1.0",
   "description": "ClojureScript workflow using Calcit Editor",
   "main": "index.js",
@@ -12,12 +12,12 @@
   "license": "MIT",
   "devDependencies": {
     "bottom-tip": "^0.1.2",
-    "vite": "^2.4.4"
+    "vite": "^2.7.10"
   },
   "dependencies": {
-    "@calcit/procs": "^0.4.16",
-    "dayjs": "^1.8.28",
+    "@calcit/procs": "^0.5.15",
+    "dayjs": "^1.10.7",
     "feather-icons": "^4.28.0",
-    "shortid": "^2.2.15"
+    "shortid": "^2.2.16"
   }
 }

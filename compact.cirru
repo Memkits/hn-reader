@@ -3,6 +3,7 @@
   :configs $ {} (:init-fn |app.main/main!) (:reload-fn |app.main/reload!)
     :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |alerts.calcit/ |respo-feather.calcit/
     :version |0.0.1
+  :entries $ {}
   :files $ {}
     |app.data-gather $ {}
       :ns $ quote (ns app.data-gather)
@@ -115,7 +116,7 @@
                     topic $ get-in resource
                       [] :topics $ first (:data router)
                   comp-frame topic
-                comp-comment-list router resource
+                comp-comment-list router resource $ :highlighted store
                 div $ {}
                   :style $ {} (:width "\"80vw")
                 when dev? $ comp-inspect "\"store" store
@@ -195,6 +196,7 @@
                     merge ui/column $ {} (:width 640)
                       :background-color $ hsl 0 0 100
                       :margin-right 8
+                      :max-width "\"100vw"
                   div
                     {} $ :style
                       {} (:padding "\"0 8px") (:overflow :hidden) (:width "\"100%")
@@ -212,7 +214,7 @@
                     :innerHTML "\"Not loaded."
               span nil
         |comp-reply $ quote
-          defcomp comp-reply (reply selected? on-click)
+          defcomp comp-reply (reply selected? highlighted? on-click)
             if (nil? reply)
               div ({})
                 <> (str "\"Data from network")
@@ -238,6 +240,8 @@
                         :border-color $ hsl 0 0 74
                         :background-color $ hsl 0 0 100
                         :box-shadow $ str "\"1px 2px 5px " (hsl 0 0 0 0.4)
+                      if highlighted? $ {}
+                        :background-color $ hsl 80 80 90
                     :class-name "\"hoverable reply"
                   div
                     {} $ :style ui/row-parted
@@ -253,27 +257,31 @@
                       =< 8 nil
                       comp-time $ :time reply
                       =< 8 nil
+                      a $ {}
+                        :href $ str "\"https://news.ycombinator.com/item?id=" (:id reply) "\"&noRedirect=true"
+                        :inner-text "\"link"
+                        :target "\"_blank"
+                        :style $ {} (:font-family ui/font-fancy)
+                    div
+                      {} (:style ui/row-middle) (:class-name "\"clickable-container")
                       comp-icon :volume-1
                         {} (:font-size 18)
                           :color $ hsl 200 80 70
                           :cursor :pointer
+                          :line-height 1
                         fn (e d!)
                           case-default audio-target
                             read-text! $ html->readable (:text reply)
                             "\"api" $ speech-via-api!
                               html->readable $ :text reply
-                    a $ {}
-                      :href $ str "\"https://news.ycombinator.com/item?id=" (:id reply) "\"&noRedirect=true"
-                      :inner-text "\"link"
-                      :target "\"_blank"
-                      :style $ {} (:font-family ui/font-fancy)
+                          d! :highlight $ :id reply
                   div $ {}
                     :innerHTML $ :text reply
-                    :style $ {} (:line-height "\"20px")
+                    :style $ {} (:line-height "\"20px") (:font-size 14)
                     :on-click $ fn (e d!)
                       if
                         = "\"A" $ -> e :event .-target .-tagName
-                        do (-> e :event .preventDefault) (-> e :event .-target .-href js/window.open)
+                        do (-> e :event .!preventDefault) (-> e :event .-target .-href js/window.open)
                   div
                     {} $ :style ui/row-parted
                     span nil
@@ -298,6 +306,7 @@
                           {}
                             :color $ hsl 0 0 80
                             :font-family ui/font-fancy
+                            :font-size 12
         |comp-topic $ quote
           defcomp comp-topic (topic style on-click)
             if (nil? topic)
@@ -349,7 +358,7 @@
                       :target "\"_blank"
                       :style $ {} (:text-overflow :ellipsis) (:overflow :hidden)
         |comp-comment-list $ quote
-          defcomp comp-comment-list (router resource)
+          defcomp comp-comment-list (router resource highlighted)
             let
                 coord $ :data router
                 topic $ get-in resource
@@ -366,7 +375,7 @@
                             get-in resource $ [] :replies parent-id
                       div
                         {} $ :style
-                          merge ui/column $ {} (:width 500) (:height "\"100%") (:overflow-y :auto) (:margin-right 8)
+                          merge ui/column $ {} (:width 500) (:max-width "\"100vw") (:height "\"100%") (:overflow-y :auto) (:margin-right 8)
                         if (= 0 idx)
                           comp-topic-parent $ get-in resource ([] :topics parent-id)
                           comp-reply-parent
@@ -377,12 +386,13 @@
                         list->
                           {} $ :style
                             merge ui/expand $ {} (:padding "\"40px 4px 160px 4px")
-                          -> kids $ map
-                            fn (reply-id)
+                          -> kids (.to-list)
+                            map $ fn (reply-id)
                               [] reply-id $ let
                                   reply $ get-in resource ([] :replies reply-id)
                                 comp-reply reply
                                   contains? (.to-set coord) reply-id
+                                  = highlighted reply-id
                                   fn (e d!)
                                     d! :router $ {}
                                       :data $ conj
@@ -420,8 +430,8 @@
                 el $ js/document.createElement "\"pre"
               set! (.-innerHTML el)
                 -> html
-                  .!replace "\"<p>" $ str &newline "\"<p>"
-                  .!replace "\"<li>" $ str &newline "\"<li>"
+                  .!replace (new js/RegExp "\"<p>" "\"g") (str "\" " "\"<p>" "\"<br/><br/>" "\" ")
+                  .!replace (new js/RegExp "\"<li>" "\"g") (str "\" " "\"<li>" "\" ")
               .-innerText el
         |comp-topic-list $ quote
           defcomp comp-topic-list (states resource focus-id)
@@ -516,9 +526,20 @@
                     :overflow :hidden
                     :text-overflow :ellipsis
                     :background-color $ hsl 0 0 100
-                div $ {}
-                  :innerHTML $ :text reply
-                  :style $ {} (:line-height "\"22px") (:white-space :nowrap) (:max-height 30) (:overflow :hidden) (:text-overflow :ellipsis) (:font-size 16)
+                div
+                  {} $ :style
+                    merge ui/row-middle $ {} (:width "\"100%")
+                  comp-icon :x
+                    {} (:font-size 14)
+                      :color $ hsl 200 80 80
+                      :cursor :pointer
+                      :line-height 1
+                    fn (e d!) (on-close d!)
+                  =< 6 nil
+                  div $ {}
+                    :innerHTML $ :text reply
+                    :style $ merge ui/expand
+                      {} (:line-height "\"22px") (:white-space :nowrap) (:max-height 22) (:overflow :hidden) (:text-overflow :ellipsis) (:font-size 16)
                 div
                   {} $ :style
                     merge ui/row-parted $ {} (:line-height "\"20px")
@@ -531,11 +552,6 @@
                     =< 8 nil
                     <> $ str "\"Comments: "
                       count $ :kids reply
-                  comp-icon :x
-                    {} (:font-size 14)
-                      :color $ hsl 200 80 80
-                      :cursor :pointer
-                    fn (e d!) (on-close d!)
     |app.schema $ {}
       :ns $ quote (ns app.schema)
       :defs $ {}
@@ -544,6 +560,7 @@
             :states $ {}
             :router $ {} (:name :home)
               :data $ []
+            :highlighted nil
     |app.updater $ {}
       :ns $ quote
         ns app.updater $ :require
@@ -557,6 +574,7 @@
               :content $ assoc store :content op-data
               :router $ assoc store :router op-data
               :hydrate-storage op-data
+              :highlight $ assoc store :highlighted op-data
     |app.main $ {}
       :ns $ quote
         ns app.main $ :require

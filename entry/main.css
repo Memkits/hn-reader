@@ -43,3 +43,7 @@ body * {
   color: white;
   padding: 8px;
 }
+
+.clickable-container i:active {
+  scale: 1.1;
+}
