@@ -1341,6 +1341,21 @@
             :time 1499755354983
             :type :expr
             :id |BJ2WiOF9pBW
+          |markdown-reader $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1641650211907)
+            :data $ {}
+              |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650211907) (:text |def)
+              |j $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650211907) (:text |markdown-reader)
+              |r $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1641650211907)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650215579) (:text |Remarkable)
+                  |D $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650220190) (:text |new)
+                  |j $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1641650454094)
+                    :data $ {}
+                      |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650463505) (:text |js-object)
+                      |j $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1641650463860)
+                        :data $ {}
+                          |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650467346) (:text |:html)
+                          |j $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650467894) (:text |true)
           |comp-time $ {}
             :data $ {}
               |T $ {} (:text |defcomp) (:type :leaf) (:at 1581239729984) (:by |rJG4IHzWf) (:id |2jkCBHsMM)
@@ -3228,14 +3243,20 @@
                                   |j $ {}
                                     :data $ {}
                                       |T $ {} (:text |:innerHTML) (:type :leaf) (:at 1581236254387) (:by |rJG4IHzWf) (:id |hyTwng75Bj)
-                                      |j $ {}
+                                      |j $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1641650309108)
                                         :data $ {}
-                                          |T $ {} (:text |:text) (:type :leaf) (:at 1581232663553) (:by |rJG4IHzWf) (:id |FkkGSAOFZZ)
-                                          |j $ {} (:text |reply) (:type :leaf) (:at 1581232663553) (:by |rJG4IHzWf) (:id |kQfW4S5W3z)
-                                        :type :expr
-                                        :at 1581232663553
-                                        :by |rJG4IHzWf
-                                        :id |ZnRe382R6g
+                                          |T $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1641650196398)
+                                            :data $ {}
+                                              |T $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1641650350628)
+                                                :data $ {}
+                                                  |T $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1641650639079)
+                                                    :data $ {}
+                                                      |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650639079) (:text |:text)
+                                                      |j $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650639079) (:text |reply)
+                                                  |D $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650352278) (:text |w-log)
+                                              |D $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650231305) (:text |.!render)
+                                              |L $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650211535) (:text |markdown-reader)
+                                          |D $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650311082) (:text |w-log)
                                     :type :expr
                                     :at 1581232663553
                                     :by |rJG4IHzWf
@@ -7127,6 +7148,13 @@
                   :type :expr
                   :at 1628862135796
                   :by |rJG4IHzWf
+                |yyr $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1641650169931)
+                  :data $ {}
+                    |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650173712) (:text "|\"remarkable")
+                    |j $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650174463) (:text |:refer)
+                    |r $ {} (:type :expr) (:by |rJG4IHzWf) (:at 1641650175452)
+                      :data $ {}
+                        |T $ {} (:type :leaf) (:by |rJG4IHzWf) (:at 1641650178285) (:text |Remarkable)
                 |yT $ {}
                   :data $ {}
                     |T $ {} (:text |[]) (:type :leaf) (:at 1519699088805) (:by |root) (:id |ryKcErMdGleaf)

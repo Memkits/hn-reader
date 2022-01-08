@@ -101,6 +101,7 @@
           [] respo-alerts.core :refer $ [] use-prompt
           [] feather.core :refer $ [] comp-icon
           "\"../entry/play-audio" :refer $ requstAudioSpeech
+          "\"remarkable" :refer $ Remarkable
       :defs $ {}
         |comp-container $ quote
           defcomp comp-container (reel resource)
@@ -122,6 +123,9 @@
                 when dev? $ comp-inspect "\"store" store
                   {} $ :bottom 0
                 when dev? $ comp-reel (>> states :reel) reel ({})
+        |markdown-reader $ quote
+          def markdown-reader $ new Remarkable
+            js-object $ :html true
         |comp-time $ quote
           defcomp comp-time (time)
             if (some? time)
@@ -276,7 +280,8 @@
                               html->readable $ :text reply
                           d! :highlight $ :id reply
                   div $ {}
-                    :innerHTML $ :text reply
+                    :innerHTML $ w-log
+                      .!render markdown-reader $ w-log (:text reply)
                     :style $ {} (:line-height "\"20px") (:font-size 14)
                     :on-click $ fn (e d!)
                       if

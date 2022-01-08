@@ -18,6 +18,7 @@
     "@calcit/procs": "^0.5.15",
     "dayjs": "^1.10.7",
     "feather-icons": "^4.28.0",
+    "remarkable": "^2.0.1",
     "shortid": "^2.2.16"
   }
 }
