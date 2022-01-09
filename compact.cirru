@@ -168,7 +168,7 @@
                   =< 8 nil
                   a $ {}
                     :href $ str "\"https://news.ycombinator.com/item?id=" (:id topic) "\"&noRedirect=true"
-                    :inner-text "\"link"
+                    :inner-text "\"$0"
                     :target "\"_blank"
                 div
                   {} $ :style
@@ -261,24 +261,27 @@
                       =< 8 nil
                       comp-time $ :time reply
                       =< 8 nil
+                      div
+                        {} (:class-name "\"clickable-container")
+                          :style $ {} (:line-height 1)
+                        comp-icon :volume-1
+                          {} (:font-size 18)
+                            :color $ hsl 200 80 70
+                            :cursor :pointer
+                            :line-height 1
+                          fn (e d!)
+                            case-default audio-target
+                              read-text! $ html->readable (:text reply)
+                              "\"api" $ speech-via-api!
+                                html->readable $ :text reply
+                            d! :highlight $ :id reply
+                    div
+                      {} $ :style ui/row-middle
                       a $ {}
                         :href $ str "\"https://news.ycombinator.com/item?id=" (:id reply) "\"&noRedirect=true"
-                        :inner-text "\"link"
+                        :inner-text "\"$0"
                         :target "\"_blank"
-                        :style $ {} (:font-family ui/font-fancy)
-                    div
-                      {} (:style ui/row-middle) (:class-name "\"clickable-container")
-                      comp-icon :volume-1
-                        {} (:font-size 18)
-                          :color $ hsl 200 80 70
-                          :cursor :pointer
-                          :line-height 1
-                        fn (e d!)
-                          case-default audio-target
-                            read-text! $ html->readable (:text reply)
-                            "\"api" $ speech-via-api!
-                              html->readable $ :text reply
-                          d! :highlight $ :id reply
+                        :style $ {} (:font-family ui/font-fancy) (:font-size 12)
                   div $ {}
                     :innerHTML $ w-log
                       .!render markdown-reader $ w-log (:text reply)
