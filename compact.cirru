@@ -6,6 +6,8 @@
   :files $ {}
     |app.comp.container $ {}
       :defs $ {}
+        |azure-key $ quote
+          def azure-key $ or (get-env "\"azure-key") (js/localStorage.getItem "\"azure-key")
         |comp-comment-list $ quote
           defcomp comp-comment-list (router resource highlighted)
             let
@@ -80,7 +82,7 @@
                       :max-width "\"100vw"
                   div
                     {} $ :style
-                      {} (:padding "\"0 8px") (:overflow :hidden) (:width "\"100%")
+                      merge ui/row-parted $ {} (:padding "\"0 8px") (:overflow :hidden) (:width "\"100%")
                         :background-color $ hsl 0 0 95
                         :white-space :nowrap
                         :border-bottom $ str "\"1px solid " (hsl 0 0 86)
@@ -88,6 +90,8 @@
                       :inner-text $ :url topic
                       :href $ :url topic
                       :target "\"_blank"
+                    span $ {} (:inner-text "\"full") (:style ui/link)
+                      :on-click $ fn (e d!) (js/document.body.requestFullscreen)
                   create-element :iframe $ {}
                     :style $ merge ui/expand
                       {} $ :border :none
@@ -149,8 +153,8 @@
                           fn (e d!)
                             case-default audio-target
                               read-text! $ html->readable (:text reply)
-                              "\"api" $ speech-via-api!
-                                html->readable $ :text reply
+                              "\"azure" $ speech-via-api!
+                                wo-log $ html->readable (:text reply)
                             d! :highlight $ :id reply
                     div
                       {} $ :style ui/row-middle
@@ -160,8 +164,8 @@
                         :target "\"_blank"
                         :style $ {} (:font-family ui/font-fancy) (:font-size 12)
                   div $ {}
-                    :innerHTML $ w-log
-                      .!render markdown-reader $ w-log (:text reply)
+                    :innerHTML $ wo-log
+                      .!render markdown-reader $ wo-log (:text reply)
                     :style $ {} (:line-height "\"20px") (:font-size 14)
                     :on-click $ fn (e d!)
                       if
@@ -432,7 +436,8 @@
                 -> html
                   .!replace (new js/RegExp "\"<p>" "\"g") (str "\" " "\"<p>" "\"<br/><br/>" "\" ")
                   .!replace (new js/RegExp "\"<li>" "\"g") (str "\" " "\"<li>" "\" ")
-              .-innerText el
+              -> (.-innerText el) (either "\"")
+                .!replace (new js/RegExp "\"https?://\\S+" "\"g") "\"."
         |markdown-reader $ quote
           def markdown-reader $ new Remarkable
             js-object $ :html true
@@ -460,7 +465,7 @@
               .!speak js/speechSynthesis instance
         |speech-via-api! $ quote
           defn speech-via-api! (text)
-            requstAudioSpeech audio-host text $ fn () (println "\"read.")
+            synthesizeAzureSpeech text azure-key $ fn () (println "\"read.")
         |url-pattern $ quote
           def url-pattern $ new js/RegExp "\"https?:\\S+"
       :ns $ quote
@@ -476,14 +481,14 @@
           [] "\"dayjs" :default dayjs
           [] respo-alerts.core :refer $ [] use-prompt
           [] feather.core :refer $ [] comp-icon
-          "\"../entry/play-audio" :refer $ requstAudioSpeech
+          "\"../entry/play-audio" :refer $ synthesizeAzureSpeech
           "\"remarkable" :refer $ Remarkable
     |app.config $ {}
       :defs $ {}
         |audio-host $ quote
           def audio-host $ get-env "\"audio-host"
         |audio-target $ quote
-          def audio-target $ get-env "\"audio-target"
+          def audio-target $ or (get-env "\"audio-target") (js/localStorage.getItem "\"audio-target")
         |dev? $ quote
           def dev? $ = "\"dev" (get-env "\"mode")
         |site $ quote

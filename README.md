@@ -10,10 +10,10 @@ Also maybe `extension/` can be installed locally for one click redirect of HN pa
 
 ### Config Voice
 
-To use API from `localhost:3001`, configure it with:
+To use API from `localhost:3001`, configure it with search query(or localStorage):
 
 ```
-http://localhost:3000/?audio-target=api&audio-host=http://localhost:3001
+http://localhost:3000/?audio-target=azure&azure-key=<key>
 ```
 
 ### Side notes
@@ -22,7 +22,7 @@ I was trying to add a proxy server batching the data, but poor network between F
 
 ### Workflow
 
-Workflow https://github.com/mvc-works/calcit-workflow
+Workflow https://github.com/calcit-lang/respo-calcit-workflow
 
 ### License
 
