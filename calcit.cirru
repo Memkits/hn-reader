@@ -1031,7 +1031,7 @@
                                                               |j $ {} (:at 1641700102844) (:by |rJG4IHzWf) (:text |reply) (:type :leaf)
                                                   |v $ {} (:at 1641700102844) (:by |rJG4IHzWf) (:type :expr)
                                                     :data $ {}
-                                                      |T $ {} (:at 1641700102844) (:by |rJG4IHzWf) (:text "|\"api") (:type :leaf)
+                                                      |T $ {} (:at 1650432143877) (:by |rJG4IHzWf) (:text "|\"azure") (:type :leaf)
                                                       |j $ {} (:at 1641700102844) (:by |rJG4IHzWf) (:type :expr)
                                                         :data $ {}
                                                           |T $ {} (:at 1641700102844) (:by |rJG4IHzWf) (:text |speech-via-api!) (:type :leaf)
@@ -3322,7 +3322,7 @@
                   |T $ {} (:at 1628861922525) (:by |rJG4IHzWf) (:type :expr)
                     :data $ {}
                       |T $ {} (:at 1628861928569) (:by |rJG4IHzWf) (:text |get-env) (:type :leaf)
-                      |j $ {} (:at 1628861955493) (:by |rJG4IHzWf) (:text "|\"audio-target") (:type :leaf)
+                      |j $ {} (:at 1650432168454) (:by |rJG4IHzWf) (:text "|\"audio-target") (:type :leaf)
                   |b $ {} (:at 1650430406806) (:by |rJG4IHzWf) (:type :expr)
                     :data $ {}
                       |T $ {} (:at 1650430406806) (:by |rJG4IHzWf) (:text |js/localStorage.getItem) (:type :leaf)

@@ -153,7 +153,7 @@
                           fn (e d!)
                             case-default audio-target
                               read-text! $ html->readable (:text reply)
-                              "\"api" $ speech-via-api!
+                              "\"azure" $ speech-via-api!
                                 wo-log $ html->readable (:text reply)
                             d! :highlight $ :id reply
                     div
