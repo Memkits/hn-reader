@@ -6,6 +6,8 @@
   :files $ {}
     |app.comp.container $ {}
       :defs $ {}
+        |azure-key $ quote
+          def azure-key $ or (get-env "\"azure-key") (js/localStorage.getItem "\"azure-key")
         |comp-comment-list $ quote
           defcomp comp-comment-list (router resource highlighted)
             let
@@ -160,8 +162,8 @@
                         :target "\"_blank"
                         :style $ {} (:font-family ui/font-fancy) (:font-size 12)
                   div $ {}
-                    :innerHTML $ w-log
-                      .!render markdown-reader $ w-log (:text reply)
+                    :innerHTML $ wo-log
+                      .!render markdown-reader $ wo-log (:text reply)
                     :style $ {} (:line-height "\"20px") (:font-size 14)
                     :on-click $ fn (e d!)
                       if
@@ -460,7 +462,7 @@
               .!speak js/speechSynthesis instance
         |speech-via-api! $ quote
           defn speech-via-api! (text)
-            requstAudioSpeech audio-host text $ fn () (println "\"read.")
+            synthesizeAzureSpeech text azure-key $ fn () (println "\"read.")
         |url-pattern $ quote
           def url-pattern $ new js/RegExp "\"https?:\\S+"
       :ns $ quote
@@ -476,14 +478,14 @@
           [] "\"dayjs" :default dayjs
           [] respo-alerts.core :refer $ [] use-prompt
           [] feather.core :refer $ [] comp-icon
-          "\"../entry/play-audio" :refer $ requstAudioSpeech
+          "\"../entry/play-audio" :refer $ synthesizeAzureSpeech
           "\"remarkable" :refer $ Remarkable
     |app.config $ {}
       :defs $ {}
         |audio-host $ quote
           def audio-host $ get-env "\"audio-host"
         |audio-target $ quote
-          def audio-target $ get-env "\"audio-target"
+          def audio-target $ or (get-env "\"audio-target") (js/localStorage.getItem "\"audio-target")
         |dev? $ quote
           def dev? $ = "\"dev" (get-env "\"mode")
         |site $ quote

@@ -7,6 +7,21 @@
     :files $ {}
       |app.comp.container $ {}
         :defs $ {}
+          |azure-key $ {} (:at 1650430372150) (:by |rJG4IHzWf) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1650430372150) (:by |rJG4IHzWf) (:text |def) (:type :leaf)
+              |b $ {} (:at 1650430372150) (:by |rJG4IHzWf) (:text |azure-key) (:type :leaf)
+              |h $ {} (:at 1650430423598) (:by |rJG4IHzWf) (:type :expr)
+                :data $ {}
+                  |D $ {} (:at 1650430424907) (:by |rJG4IHzWf) (:text |or) (:type :leaf)
+                  |T $ {} (:at 1650430373474) (:by |rJG4IHzWf) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1650430428752) (:by |rJG4IHzWf) (:text |get-env) (:type :leaf)
+                      |b $ {} (:at 1650430373474) (:by |rJG4IHzWf) (:text "|\"azure-key") (:type :leaf)
+                  |b $ {} (:at 1650430373474) (:by |rJG4IHzWf) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1650430378849) (:by |rJG4IHzWf) (:text |js/localStorage.getItem) (:type :leaf)
+                      |b $ {} (:at 1650430373474) (:by |rJG4IHzWf) (:text "|\"azure-key") (:type :leaf)
           |comp-comment-list $ {} (:at 1581229573261) (:by |rJG4IHzWf) (:id |BNGgN8jMd) (:type :expr)
             :data $ {}
               |T $ {} (:at 1581229575162) (:by |rJG4IHzWf) (:id |FmEGZNGQ9) (:text |defcomp) (:type :leaf)
@@ -1065,14 +1080,14 @@
                                       |T $ {} (:at 1581236254387) (:by |rJG4IHzWf) (:id |hyTwng75Bj) (:text |:innerHTML) (:type :leaf)
                                       |j $ {} (:at 1641650309108) (:by |rJG4IHzWf) (:type :expr)
                                         :data $ {}
-                                          |D $ {} (:at 1641650311082) (:by |rJG4IHzWf) (:text |w-log) (:type :leaf)
+                                          |D $ {} (:at 1650430072004) (:by |rJG4IHzWf) (:text |wo-log) (:type :leaf)
                                           |T $ {} (:at 1641650196398) (:by |rJG4IHzWf) (:type :expr)
                                             :data $ {}
                                               |D $ {} (:at 1641650231305) (:by |rJG4IHzWf) (:text |.!render) (:type :leaf)
                                               |L $ {} (:at 1641650211535) (:by |rJG4IHzWf) (:text |markdown-reader) (:type :leaf)
                                               |T $ {} (:at 1641650350628) (:by |rJG4IHzWf) (:type :expr)
                                                 :data $ {}
-                                                  |D $ {} (:at 1641650352278) (:by |rJG4IHzWf) (:text |w-log) (:type :leaf)
+                                                  |D $ {} (:at 1650430073767) (:by |rJG4IHzWf) (:text |wo-log) (:type :leaf)
                                                   |T $ {} (:at 1641650639079) (:by |rJG4IHzWf) (:type :expr)
                                                     :data $ {}
                                                       |T $ {} (:at 1641650639079) (:by |rJG4IHzWf) (:text |:text) (:type :leaf)
@@ -3085,9 +3100,9 @@
                   |T $ {} (:at 1628862058959) (:by |rJG4IHzWf) (:text |text) (:type :leaf)
               |v $ {} (:at 1628862155934) (:by |rJG4IHzWf) (:type :expr)
                 :data $ {}
-                  |T $ {} (:at 1628862155608) (:by |rJG4IHzWf) (:text |requstAudioSpeech) (:type :leaf)
-                  |b $ {} (:at 1628862221392) (:by |rJG4IHzWf) (:text |audio-host) (:type :leaf)
+                  |T $ {} (:at 1650429878694) (:by |rJG4IHzWf) (:text |synthesizeAzureSpeech) (:type :leaf)
                   |j $ {} (:at 1628862158118) (:by |rJG4IHzWf) (:text |text) (:type :leaf)
+                  |n $ {} (:at 1650430371892) (:by |rJG4IHzWf) (:text |azure-key) (:type :leaf)
                   |r $ {} (:at 1628862177331) (:by |rJG4IHzWf) (:type :expr)
                     :data $ {}
                       |T $ {} (:at 1628862177646) (:by |rJG4IHzWf) (:text |fn) (:type :leaf)
@@ -3226,7 +3241,7 @@
                     |j $ {} (:at 1628862152275) (:by |rJG4IHzWf) (:text |:refer) (:type :leaf)
                     |r $ {} (:at 1628862152563) (:by |rJG4IHzWf) (:type :expr)
                       :data $ {}
-                        |T $ {} (:at 1628862153014) (:by |rJG4IHzWf) (:text |requstAudioSpeech) (:type :leaf)
+                        |T $ {} (:at 1650429881561) (:by |rJG4IHzWf) (:text |synthesizeAzureSpeech) (:type :leaf)
                 |yyr $ {} (:at 1641650169931) (:by |rJG4IHzWf) (:type :expr)
                   :data $ {}
                     |T $ {} (:at 1641650173712) (:by |rJG4IHzWf) (:text "|\"remarkable") (:type :leaf)
@@ -3250,10 +3265,17 @@
             :data $ {}
               |T $ {} (:at 1628861924697) (:by |rJG4IHzWf) (:text |def) (:type :leaf)
               |j $ {} (:at 1628861959928) (:by |rJG4IHzWf) (:text |audio-target) (:type :leaf)
-              |r $ {} (:at 1628861922525) (:by |rJG4IHzWf) (:type :expr)
+              |r $ {} (:at 1650430403380) (:by |rJG4IHzWf) (:type :expr)
                 :data $ {}
-                  |T $ {} (:at 1628861928569) (:by |rJG4IHzWf) (:text |get-env) (:type :leaf)
-                  |j $ {} (:at 1628861955493) (:by |rJG4IHzWf) (:text "|\"audio-target") (:type :leaf)
+                  |D $ {} (:at 1650430404711) (:by |rJG4IHzWf) (:text |or) (:type :leaf)
+                  |T $ {} (:at 1628861922525) (:by |rJG4IHzWf) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1628861928569) (:by |rJG4IHzWf) (:text |get-env) (:type :leaf)
+                      |j $ {} (:at 1628861955493) (:by |rJG4IHzWf) (:text "|\"audio-target") (:type :leaf)
+                  |b $ {} (:at 1650430406806) (:by |rJG4IHzWf) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1650430406806) (:by |rJG4IHzWf) (:text |js/localStorage.getItem) (:type :leaf)
+                      |b $ {} (:at 1650430409571) (:by |rJG4IHzWf) (:text "|\"audio-target") (:type :leaf)
           |dev? $ {} (:at 1544873875614) (:by |rJG4IHzWf) (:id |soffpzT3iV) (:type :expr)
             :data $ {}
               |T $ {} (:at 1544873875614) (:by |rJG4IHzWf) (:id |YFw1U8z4Tf) (:text |def) (:type :leaf)
