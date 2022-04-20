@@ -82,7 +82,7 @@
                       :max-width "\"100vw"
                   div
                     {} $ :style
-                      {} (:padding "\"0 8px") (:overflow :hidden) (:width "\"100%")
+                      merge ui/row-parted $ {} (:padding "\"0 8px") (:overflow :hidden) (:width "\"100%")
                         :background-color $ hsl 0 0 95
                         :white-space :nowrap
                         :border-bottom $ str "\"1px solid " (hsl 0 0 86)
@@ -90,6 +90,8 @@
                       :inner-text $ :url topic
                       :href $ :url topic
                       :target "\"_blank"
+                    span $ {} (:inner-text "\"full") (:style ui/link)
+                      :on-click $ fn (e d!) (js/document.body.requestFullscreen)
                   create-element :iframe $ {}
                     :style $ merge ui/expand
                       {} $ :border :none
@@ -152,7 +154,7 @@
                             case-default audio-target
                               read-text! $ html->readable (:text reply)
                               "\"api" $ speech-via-api!
-                                html->readable $ :text reply
+                                wo-log $ html->readable (:text reply)
                             d! :highlight $ :id reply
                     div
                       {} $ :style ui/row-middle
@@ -434,7 +436,8 @@
                 -> html
                   .!replace (new js/RegExp "\"<p>" "\"g") (str "\" " "\"<p>" "\"<br/><br/>" "\" ")
                   .!replace (new js/RegExp "\"<li>" "\"g") (str "\" " "\"<li>" "\" ")
-              .-innerText el
+              -> (.-innerText el) (either "\"")
+                .!replace (new js/RegExp "\"https?://\\S+" "\"g") "\"."
         |markdown-reader $ quote
           def markdown-reader $ new Remarkable
             js-object $ :html true
