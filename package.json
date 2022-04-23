@@ -16,7 +16,7 @@
     "vite": "^2.9.5"
   },
   "dependencies": {
-    "@calcit/procs": "^0.5.33",
+    "@calcit/procs": "^0.5.35",
     "dayjs": "^1.11.1",
     "feather-icons": "^4.29.0",
     "remarkable": "^2.0.1",
