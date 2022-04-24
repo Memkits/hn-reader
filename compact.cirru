@@ -599,10 +599,9 @@
                 raw $ .getItem js/localStorage (:storage-key config/site)
               when (some? raw)
                 dispatch! :hydrate-storage $ read-string raw
-            if (.starts-with? js/location.search "\"?id=")
-              let
-                  id $ .slice js/location.search 4
-                dispatch! :load-topic id
+            if-let
+              id $ get-env "\"id"
+              do (dispatch! :load-topic id)
                 dispatch! :router $ {}
                   :data $ [] id
               dispatch! :load-top10 nil
