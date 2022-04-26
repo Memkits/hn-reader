@@ -1,59 +1,75 @@
 // import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 import * as bundle from "microsoft-cognitiveservices-speech-sdk/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle";
 
-console.log("bundle", bundle);
+console.log("speechsdk", bundle);
 
-export function synthesizeAzureSpeech(text, key, cb) {
-    const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key, "eastasia");
-    // speechConfig.speechSynthesisLanguage = "zh-CN"; // For example, "de-DE"
-    speechConfig.speechSynthesisLanguage = "en-US"; // For example, "de-DE"
-    // speechConfig.speechSynthesisVoiceName = "zh-CN-XiaochenNeural";
-    speechConfig.speechSynthesisVoiceName = "en-US-SaraNeural";
-    const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+var synthesizer;
 
-    const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
-    synthesizer.speakSsmlAsync(makeSsml(text),
-        result => {
-            if (result) {
-                synthesizer.close();
-                // console.log(result)
-                // return result.audioData;
+export let configAzureSpeechApi = (key) => {
+  const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key, "eastasia");
+  // speechConfig.speechSynthesisLanguage = "zh-CN"; // For example, "de-DE"
+  speechConfig.speechSynthesisLanguage = "en-US"; // For example, "de-DE"
+  // speechConfig.speechSynthesisVoiceName = "zh-CN-XiaochenNeural";
+  speechConfig.speechSynthesisVoiceName = "en-US-SaraNeural";
+  // const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+  synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, null);
+};
 
-              let b = new Blob([result.audioData], {type: 'audio/wav'});
+let previousAudio;
 
-              // console.log(b.toString())
-              let url = URL.createObjectURL(b);
+export function synthesizeAzureSpeech(text, key, onPlay, onNext) {
+  if (synthesizer == null) {
+    configAzureSpeechApi(key);
+  }
 
-              // console.log('url', url)
+  synthesizer.speakSsmlAsync(
+    makeSsml(text),
+    (result) => {
+      if (result) {
+        if (previousAudio != null) {
+          previousAudio.pause();
+        }
+        // synthesizer.close();
+        let b = new Blob([result.audioData], { type: "audio/wav" });
 
-              let audio = new Audio();
-              audio.src = url;
+        let url = URL.createObjectURL(b);
+        // console.log(b.toString())
+        // console.log('url', url)
 
-              audio.oncanplaythrough = () => {
-                    let time = audio.duration;
-                    console.log("time", time);
-                    URL.revokeObjectURL(url);
-                    setTimeout(() => {
-                        cb();
-                    }, time * 1000 - 200)
-              }
-            } else {
-                console.warn("unknown result")
-            }
+        let audio = new Audio();
+        previousAudio = audio;
+        audio.src = url;
+        audio.autoplay = true;
 
-        },
-        error => {
-            console.log(error);
-            synthesizer.close();
-        });
+        audio.oncanplaythrough = () => {
+          let time = audio.duration;
+          URL.revokeObjectURL(url);
+          onPlay?.();
+        };
+        audio.onplay = () => {
+          onPlay?.();
+        };
+        audio.onended = () => {
+          previousAudio = null;
+          onNext?.();
+        };
+      } else {
+        console.warn("unknown result");
+      }
+    },
+    (error) => {
+      console.log(error);
+      synthesizer.close();
+    }
+  );
 }
 
 let makeSsml = (text) => {
-    return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
+  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
     <voice name="en-US-SaraNeural">
         <prosody rate="+10.00%">
             ${text}
         </prosody>
     </voice>
-</speak>`
-}
+</speak>`;
+};

@@ -144,15 +144,18 @@
                             {} $ :position :relative
                           div
                             {} (:class-name "\"clickable-container")
-                              :style $ {} (:line-height 1) (:position :absolute) (:bottom -2) (:right 8)
+                              :style $ {} (:line-height 1) (:position :absolute) (:bottom 6) (:right -6)
                             comp-icon :volume-1
                               {} (:font-size 18) (:cursor :pointer) (:line-height 1)
                                 :color $ hsl 200 80 70
                               fn (e d!)
                                 case-default audio-target
-                                  read-text! $ html->readable block
+                                  read-text! $ do (html->readable block)
+                                    d! :highlight $ [] (:id reply) idx
                                   "\"azure" $ speech-via-api! (html->readable block)
-                                d! :highlight $ [] (:id reply) idx
+                                    fn () $ d! :highlight
+                                      [] (:id reply) idx
+                                    fn $
                           div $ {}
                             :innerHTML $ wo-log (.!render markdown-reader block)
                             :style $ merge
@@ -450,8 +453,7 @@
               .!cancel js/speechSynthesis
               .!speak js/speechSynthesis instance
         |speech-via-api! $ quote
-          defn speech-via-api! (text)
-            synthesizeAzureSpeech text azure-key $ fn () (println "\"read.")
+          defn speech-via-api! (text on-play on-next) (synthesizeAzureSpeech text azure-key on-play on-next)
         |style-open-replies $ quote
           def style-open-replies $ {} (:display :inline-block)
             :background-color $ hsl 200 80 60
@@ -493,7 +495,7 @@
         |audio-target $ quote
           def audio-target $ or (get-env "\"audio-target") (js/localStorage.getItem "\"audio-target")
         |dev? $ quote
-          def dev? $ = "\"dev" (get-env "\"mode")
+          def dev? $ = "\"dev" (get-env "\"mode" "\"release")
         |site $ quote
           def site $ {} (:dev-ui "\"http://localhost:8100/main-fonts.css") (:release-ui "\"http://cdn.tiye.me/favored-fonts/main-fonts.css") (:cdn-url "\"http://cdn.tiye.me/hn-reader/") (:title "\"HN Reader") (:icon "\"http://cdn.tiye.me/logo/memkits.png") (:storage-key "\"hn-reader")
       :ns $ quote (ns app.config)
