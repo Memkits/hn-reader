@@ -4,6 +4,7 @@ import * as bundle from "microsoft-cognitiveservices-speech-sdk/distrib/browser/
 console.log("speechsdk", bundle);
 
 var synthesizer;
+var previousContent = "";
 
 export let configAzureSpeechApi = (key) => {
   const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key, "eastasia");
@@ -11,13 +12,16 @@ export let configAzureSpeechApi = (key) => {
   speechConfig.speechSynthesisLanguage = "en-US"; // For example, "de-DE"
   // speechConfig.speechSynthesisVoiceName = "zh-CN-XiaochenNeural";
   speechConfig.speechSynthesisVoiceName = "en-US-SaraNeural";
-  // const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
-  synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, null);
+  const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+  synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
 };
 
-let previousAudio;
-
 export function synthesizeAzureSpeech(text, key, onPlay, onNext) {
+  if (text === previousContent) {
+    // accidental click
+    return;
+  }
+  previousContent = text;
   if (synthesizer == null) {
     configAzureSpeechApi(key);
   }
@@ -26,33 +30,8 @@ export function synthesizeAzureSpeech(text, key, onPlay, onNext) {
     makeSsml(text),
     (result) => {
       if (result) {
-        if (previousAudio != null) {
-          previousAudio.pause();
-        }
         // synthesizer.close();
-        let b = new Blob([result.audioData], { type: "audio/wav" });
-
-        let url = URL.createObjectURL(b);
-        // console.log(b.toString())
-        // console.log('url', url)
-
-        let audio = new Audio();
-        previousAudio = audio;
-        audio.src = url;
-        audio.autoplay = true;
-
-        audio.oncanplaythrough = () => {
-          let time = audio.duration;
-          URL.revokeObjectURL(url);
-          onPlay?.();
-        };
-        audio.onplay = () => {
-          onPlay?.();
-        };
-        audio.onended = () => {
-          previousAudio = null;
-          onNext?.();
-        };
+        onPlay?.();
       } else {
         console.warn("unknown result");
       }
