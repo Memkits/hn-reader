@@ -41,18 +41,13 @@
                             map $ fn (reply-id)
                               [] reply-id $ let
                                   reply $ get-in resource ([] :replies reply-id)
-                                comp-reply reply
+                                memof1-call-by reply-id comp-reply reply
                                   contains? (.to-set coord) reply-id
                                   if
                                     = (first highlighted) reply-id
                                     last highlighted
                                     , nil
-                                  fn (e d!)
-                                    d! :router $ {}
-                                      :data $ conj
-                                        .slice coord 0 $ inc idx
-                                        :id reply
-                                    d! :load-reply $ :id reply
+                                  , idx
         |comp-container $ quote
           defcomp comp-container (reel resource)
             let
@@ -102,7 +97,7 @@
                     :innerHTML "\"Not loaded."
               span nil
         |comp-reply $ quote
-          defcomp comp-reply (reply selected? highlighted-idx on-click)
+          defcomp comp-reply (reply selected? highlighted-idx idx)
             if (nil? reply)
               div ({})
                 <> (str "\"Data from network")
@@ -177,7 +172,8 @@
                         div
                           {} (:style style-open-replies)
                             :on-click $ fn (e d!)
-                              if has-kids $ on-click e d!
+                              d! :router-after $ [] idx (:id reply)
+                              d! :load-reply $ :id reply
                           <> (str "\"Comments: ")
                             {} (:font-family ui/font-fancy) (:font-size 12)
                           <> size
@@ -489,6 +485,7 @@
           [] feather.core :refer $ [] comp-icon
           "\"../entry/play-audio" :refer $ synthesizeAzureSpeech
           "\"remarkable" :refer $ Remarkable
+          memof.once :refer $ memof1-call-by
     |app.config $ {}
       :defs $ {}
         |audio-host $ quote
@@ -662,6 +659,12 @@
               :states $ update-states store op-data
               :content $ assoc store :content op-data
               :router $ assoc store :router op-data
+              :router-after $ let[] (idx reply-id) op-data
+                update store :router $ fn (router)
+                  {} $ :data
+                    conj
+                      .slice (:data router) 0 $ inc idx
+                      , reply-id
               :hydrate-storage op-data
               :highlight $ assoc store :highlighted op-data
       :ns $ quote
