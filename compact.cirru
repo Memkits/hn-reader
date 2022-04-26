@@ -43,7 +43,10 @@
                                   reply $ get-in resource ([] :replies reply-id)
                                 comp-reply reply
                                   contains? (.to-set coord) reply-id
-                                  = highlighted reply-id
+                                  if
+                                    = (first highlighted) reply-id
+                                    last highlighted
+                                    , nil
                                   fn (e d!)
                                     d! :router $ {}
                                       :data $ conj
@@ -99,7 +102,7 @@
                     :innerHTML "\"Not loaded."
               span nil
         |comp-reply $ quote
-          defcomp comp-reply (reply selected? highlighted? on-click)
+          defcomp comp-reply (reply selected? highlighted-idx on-click)
             if (nil? reply)
               div ({})
                 <> (str "\"Data from network")
@@ -113,64 +116,58 @@
                     , 0
                 div
                   {}
-                    :style $ merge
-                      {} (:padding "\"8px 16px")
-                        :border-color $ hsl 0 0 88
-                        :border-style :solid
-                        :border-width "\"1px 1px 2px 1px"
-                        :background-color $ hsl 0 0 99
-                        :margin-bottom 16
-                        :border-radius "\"2px"
+                    :style $ merge style-reply
                       if selected? $ {}
                         :border-color $ hsl 0 0 74
                         :background-color $ hsl 0 0 100
                         :box-shadow $ str "\"1px 2px 5px " (hsl 0 0 0 0.4)
-                      if highlighted? $ {}
-                        :background-color $ hsl 80 80 90
                     :class-name "\"hoverable reply"
                   div
                     {} $ :style ui/row-parted
                     div
                       {} $ :style
-                        merge ui/row-middle $ {}
+                        merge ui/row-middle $ {} (:font-size 13) (:font-family ui/font-fancy)
                           :color $ hsl 0 0 60
-                          :font-size 13
-                          :font-family ui/font-fancy
                       <>
                         str $ :by reply
                         {} (:color :black) (:font-size 14) (:font-weight :bold) (:font-family ui/font-normal)
                       =< 8 nil
                       comp-time $ :time reply
-                      =< 8 nil
-                      div
-                        {} (:class-name "\"clickable-container")
-                          :style $ {} (:line-height 1)
-                        comp-icon :volume-1
-                          {} (:font-size 18)
-                            :color $ hsl 200 80 70
-                            :cursor :pointer
-                            :line-height 1
-                          fn (e d!)
-                            case-default audio-target
-                              read-text! $ html->readable (:text reply)
-                              "\"azure" $ speech-via-api!
-                                wo-log $ html->readable (:text reply)
-                            d! :highlight $ :id reply
                     div
                       {} $ :style ui/row-middle
-                      a $ {}
+                      a $ {} (:inner-text "\"$0") (:target "\"_blank")
                         :href $ str "\"https://news.ycombinator.com/item?id=" (:id reply) "\"&noRedirect=true"
-                        :inner-text "\"$0"
-                        :target "\"_blank"
                         :style $ {} (:font-family ui/font-fancy) (:font-size 12)
-                  div $ {}
-                    :innerHTML $ wo-log
-                      .!render markdown-reader $ wo-log (:text reply)
-                    :style $ {} (:line-height "\"20px") (:font-size 14)
-                    :on-click $ fn (e d!)
-                      if
-                        = "\"A" $ -> e :event .-target .-tagName
-                        do (-> e :event .!preventDefault) (-> e :event .-target .-href js/window.open)
+                  let
+                      content $ :text reply
+                      paragraphs $ to-calcit-data
+                        .!split (either content "\"") pattern-lines
+                    list-> ({})
+                      map-indexed paragraphs $ fn (idx block)
+                        [] idx $ div
+                          {} $ :style
+                            {} $ :position :relative
+                          div
+                            {} (:class-name "\"clickable-container")
+                              :style $ {} (:line-height 1) (:position :absolute) (:bottom -2) (:right 8)
+                            comp-icon :volume-1
+                              {} (:font-size 18) (:cursor :pointer) (:line-height 1)
+                                :color $ hsl 200 80 70
+                              fn (e d!)
+                                case-default audio-target
+                                  read-text! $ html->readable block
+                                  "\"azure" $ speech-via-api! (html->readable block)
+                                d! :highlight $ [] (:id reply) idx
+                          div $ {}
+                            :innerHTML $ wo-log (.!render markdown-reader block)
+                            :style $ merge
+                              {} (:line-height "\"20px") (:font-size 14)
+                              if (= idx highlighted-idx)
+                                {} $ :background-color (hsl 80 80 90)
+                            :on-click $ fn (e d!)
+                              if
+                                = "\"A" $ -> e :event .-target .-tagName
+                                do (-> e :event .!preventDefault) (-> e :event .-target .-href js/window.open)
                   div
                     {} $ :style ui/row-parted
                     span nil
@@ -178,24 +175,15 @@
                         size $ count (:kids reply)
                       if (> size 0)
                         div
-                          {}
-                            :style $ {} (:display :inline-block)
-                              :background-color $ hsl 200 80 60
-                              :color :white
-                              :padding "\"0 12px"
-                              :border-radius "\"16px"
-                              :cursor :pointer
-                              :user-select :none
+                          {} (:style style-open-replies)
                             :on-click $ fn (e d!)
                               if has-kids $ on-click e d!
                           <> (str "\"Comments: ")
                             {} (:font-family ui/font-fancy) (:font-size 12)
                           <> size
                         <> (str "\"No comments.")
-                          {}
+                          {} (:font-family ui/font-fancy) (:font-size 12)
                             :color $ hsl 0 0 80
-                            :font-family ui/font-fancy
-                            :font-size 12
         |comp-reply-parent $ quote
           defcomp comp-reply-parent (reply on-close)
             if (nil? reply)
@@ -441,6 +429,8 @@
         |markdown-reader $ quote
           def markdown-reader $ new Remarkable
             js-object $ :html true
+        |pattern-lines $ quote
+          def pattern-lines $ new js/RegExp "\"<p>"
         |read-text! $ quote
           defn read-text! (text)
             let
@@ -466,6 +456,22 @@
         |speech-via-api! $ quote
           defn speech-via-api! (text)
             synthesizeAzureSpeech text azure-key $ fn () (println "\"read.")
+        |style-open-replies $ quote
+          def style-open-replies $ {} (:display :inline-block)
+            :background-color $ hsl 200 80 60
+            :color :white
+            :padding "\"0 12px"
+            :border-radius "\"16px"
+            :cursor :pointer
+            :user-select :none
+        |style-reply $ quote
+          def style-reply $ {} (:padding "\"8px 16px")
+            :border-color $ hsl 0 0 88
+            :border-style :solid
+            :border-width "\"1px 1px 2px 1px"
+            :background-color $ hsl 0 0 99
+            :margin-bottom 16
+            :border-radius "\"2px"
         |url-pattern $ quote
           def url-pattern $ new js/RegExp "\"https?:\\S+"
       :ns $ quote
