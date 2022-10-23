@@ -725,7 +725,6 @@
                                   |b $ {} (:at 1666547681694) (:by |rJG4IHzWf) (:type :expr)
                                     :data $ {}
                                       |D $ {} (:at 1666547683797) (:by |rJG4IHzWf) (:text |str-spaced) (:type :leaf)
-                                      |L $ {} (:at 1666547687517) (:by |rJG4IHzWf) (:text "|\"hoverable") (:type :leaf)
                                       |P $ {} (:at 1666547688330) (:by |rJG4IHzWf) (:text "|\"reply") (:type :leaf)
                                       |Y $ {} (:at 1666547780179) (:by |rJG4IHzWf) (:text |css-reply) (:type :leaf)
                                       |e $ {} (:at 1666549350807) (:by |rJG4IHzWf) (:type :expr)
@@ -2719,6 +2718,35 @@
                                   |b $ {} (:at 1666548525971) (:by |rJG4IHzWf) (:text |0) (:type :leaf)
                                   |h $ {} (:at 1666548525971) (:by |rJG4IHzWf) (:text |0) (:type :leaf)
                                   |l $ {} (:at 1666548525971) (:by |rJG4IHzWf) (:text |99) (:type :leaf)
+                  |b $ {} (:at 1666550165265) (:by |rJG4IHzWf) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1666550170254) (:by |rJG4IHzWf) (:text "|\"$0:hover") (:type :leaf)
+                      |b $ {} (:at 1666550170515) (:by |rJG4IHzWf) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1666550170850) (:by |rJG4IHzWf) (:text |{}) (:type :leaf)
+                          |b $ {} (:at 1666550173768) (:by |rJG4IHzWf) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1666550173768) (:by |rJG4IHzWf) (:text |:background-color) (:type :leaf)
+                              |b $ {} (:at 1666550173768) (:by |rJG4IHzWf) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1666550173768) (:by |rJG4IHzWf) (:text |hsl) (:type :leaf)
+                                  |b $ {} (:at 1666550173768) (:by |rJG4IHzWf) (:text |0) (:type :leaf)
+                                  |h $ {} (:at 1666550173768) (:by |rJG4IHzWf) (:text |0) (:type :leaf)
+                                  |l $ {} (:at 1666550175842) (:by |rJG4IHzWf) (:text |100) (:type :leaf)
+                          |h $ {} (:at 1666550316671) (:by |rJG4IHzWf) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1666550316671) (:by |rJG4IHzWf) (:text |:box-shadow) (:type :leaf)
+                              |b $ {} (:at 1666550316671) (:by |rJG4IHzWf) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1666550316671) (:by |rJG4IHzWf) (:text |str) (:type :leaf)
+                                  |b $ {} (:at 1666550319811) (:by |rJG4IHzWf) (:text "|\"0px 2px 2px ") (:type :leaf)
+                                  |h $ {} (:at 1666550316671) (:by |rJG4IHzWf) (:type :expr)
+                                    :data $ {}
+                                      |T $ {} (:at 1666550316671) (:by |rJG4IHzWf) (:text |hsl) (:type :leaf)
+                                      |b $ {} (:at 1666550316671) (:by |rJG4IHzWf) (:text |0) (:type :leaf)
+                                      |h $ {} (:at 1666550316671) (:by |rJG4IHzWf) (:text |0) (:type :leaf)
+                                      |l $ {} (:at 1666550316671) (:by |rJG4IHzWf) (:text |0) (:type :leaf)
+                                      |o $ {} (:at 1666550316671) (:by |rJG4IHzWf) (:text |0.1) (:type :leaf)
           |css-reply-parent $ {} (:at 1666547421007) (:by |rJG4IHzWf) (:type :expr)
             :data $ {}
               |T $ {} (:at 1666547422299) (:by |rJG4IHzWf) (:text |defstyle) (:type :leaf)
@@ -3089,14 +3117,14 @@
                               |b $ {} (:at 1666549363069) (:by |rJG4IHzWf) (:type :expr)
                                 :data $ {}
                                   |T $ {} (:at 1666549363069) (:by |rJG4IHzWf) (:text |str) (:type :leaf)
-                                  |b $ {} (:at 1666549363069) (:by |rJG4IHzWf) (:text "|\"1px 2px 5px ") (:type :leaf)
+                                  |b $ {} (:at 1666550273119) (:by |rJG4IHzWf) (:text "|\"0px 3px 2px ") (:type :leaf)
                                   |h $ {} (:at 1666549363069) (:by |rJG4IHzWf) (:type :expr)
                                     :data $ {}
                                       |T $ {} (:at 1666549363069) (:by |rJG4IHzWf) (:text |hsl) (:type :leaf)
                                       |b $ {} (:at 1666549363069) (:by |rJG4IHzWf) (:text |0) (:type :leaf)
                                       |h $ {} (:at 1666549363069) (:by |rJG4IHzWf) (:text |0) (:type :leaf)
                                       |l $ {} (:at 1666549363069) (:by |rJG4IHzWf) (:text |0) (:type :leaf)
-                                      |o $ {} (:at 1666549363069) (:by |rJG4IHzWf) (:text |0.4) (:type :leaf)
+                                      |o $ {} (:at 1666550244998) (:by |rJG4IHzWf) (:text |0.1) (:type :leaf)
           |css-topic-title $ {} (:at 1666547183664) (:by |rJG4IHzWf) (:type :expr)
             :data $ {}
               |T $ {} (:at 1666547185291) (:by |rJG4IHzWf) (:text |defstyle) (:type :leaf)

@@ -110,7 +110,7 @@
                     , 0
                 div
                   {} $ :class-name
-                    str-spaced "\"hoverable" "\"reply" css-reply $ if selected? css-topic-selected
+                    str-spaced "\"reply" css-reply $ if selected? css-topic-selected
                   div
                     {} $ :class-name css/row-parted
                     div
@@ -393,6 +393,9 @@
             "\"$0" $ {} (:padding "\"8px 16px") (:border-style :solid) (:border-width "\"1px 1px 2px 1px") (:margin-bottom 16) (:border-radius "\"8px")
               :border-color $ hsl 0 0 88
               :background-color $ hsl 0 0 99
+            "\"$0:hover" $ {}
+              :background-color $ hsl 0 0 100
+              :box-shadow $ str "\"0px 2px 2px " (hsl 0 0 0 0.1)
         |css-reply-parent $ quote
           defstyle css-reply-parent $ {}
             "\"$0" $ {} (:padding "\"8px 16px")
@@ -448,7 +451,7 @@
             "\"$0" $ {}
               :border-color $ hsl 0 0 74
               :background-color $ hsl 0 0 100
-              :box-shadow $ str "\"1px 2px 5px " (hsl 0 0 0 0.4)
+              :box-shadow $ str "\"0px 3px 2px " (hsl 0 0 0 0.1)
         |css-topic-title $ quote
           defstyle css-topic-title $ {}
             "\"$0" $ {} (:font-size 14) (:text-overflow :ellipsis) (:overflow :hidden)
