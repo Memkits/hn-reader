@@ -15,8 +15,8 @@
                 topic $ get-in resource
                   [] :topics $ first coord
               list->
-                {} $ :style
-                  merge ui/row $ {} (:height "\"100%")
+                {} (:class-name css/row)
+                  :style $ {} (:height "\"100%")
                 -> coord $ map-indexed
                   fn (idx parent-id)
                     [] parent-id $ let
@@ -25,8 +25,7 @@
                             get-in resource $ [] :topics parent-id
                             get-in resource $ [] :replies parent-id
                       div
-                        {} $ :style
-                          merge ui/column $ {} (:width 500) (:max-width "\"100vw") (:height "\"100%") (:overflow-y :auto) (:margin-right 8)
+                        {} $ :class-name (str-spaced css/column css-comment-list)
                         if (= 0 idx)
                           comp-topic-parent $ get-in resource ([] :topics parent-id)
                           comp-reply-parent
@@ -35,8 +34,8 @@
                               d! :router $ {}
                                 :data $ .slice coord 0 idx
                         list->
-                          {} $ :style
-                            merge ui/expand $ {} (:padding "\"40px 4px 160px 4px")
+                          {} (:class-name css/expand)
+                            :style $ {} (:padding "\"40px 4px 160px 4px")
                           -> kids (.to-list)
                             map $ fn (reply-id)
                               [] reply-id $ let
@@ -55,8 +54,9 @@
                 states $ :states store
                 router $ :router store
               div
-                {} $ :style
-                  merge ui/fullscreen ui/global ui/row $ {} (:overflow-x :auto)
+                {}
+                  :class-name $ str-spaced css/fullscreen css/global css/row
+                  :style $ {} (:overflow-x :auto)
                 comp-topic-list (>> states :topics) resource $ first (:data router)
                 let
                     topic $ get-in resource
@@ -73,14 +73,14 @@
             if (some? topic)
               [] (effect-load topic)
                 div
-                  {} $ :style
-                    merge ui/column $ {} (:width 640)
+                  {} (:class-name css/column)
+                    :style $ {} (:width 640)
                       :background-color $ hsl 0 0 100
                       :margin-right 8
                       :max-width "\"100vw"
                   div
-                    {} $ :style
-                      merge ui/row-parted $ {} (:padding "\"0 8px") (:overflow :hidden) (:width "\"100%")
+                    {} (:class-name css/row-parted)
+                      :style $ {} (:padding "\"0 8px") (:overflow :hidden) (:width "\"100%")
                         :background-color $ hsl 0 0 95
                         :white-space :nowrap
                         :border-bottom $ str "\"1px solid " (hsl 0 0 86)
@@ -88,11 +88,10 @@
                       :inner-text $ :url topic
                       :href $ :url topic
                       :target "\"_blank"
-                    span $ {} (:inner-text "\"full") (:style ui/link)
+                    span $ {} (:inner-text "\"full") (:class-name css/link)
                       :on-click $ fn (e d!) (js/document.body.requestFullscreen)
-                  create-element :iframe $ {}
-                    :style $ merge ui/expand
-                      {} $ :border :none
+                  create-element :iframe $ {} (:class-name css/expand)
+                    :style $ {} (:border :none)
                     :id "\"frame"
                     :innerHTML "\"Not loaded."
               span nil
@@ -110,29 +109,22 @@
                     count $ :kids reply
                     , 0
                 div
-                  {}
-                    :style $ merge style-reply
-                      if selected? $ {}
-                        :border-color $ hsl 0 0 74
-                        :background-color $ hsl 0 0 100
-                        :box-shadow $ str "\"1px 2px 5px " (hsl 0 0 0 0.4)
-                    :class-name "\"hoverable reply"
+                  {} $ :class-name
+                    str-spaced "\"reply" css-reply $ if selected? css-topic-selected
                   div
-                    {} $ :style ui/row-parted
+                    {} $ :class-name css/row-parted
                     div
-                      {} $ :style
-                        merge ui/row-middle $ {} (:font-size 13) (:font-family ui/font-fancy)
-                          :color $ hsl 0 0 60
+                      {} $ :class-name (str-spaced css/row-middle css-topic-labels)
                       <>
                         str $ :by reply
-                        {} (:color :black) (:font-size 14) (:font-weight :bold) (:font-family ui/font-normal)
+                        , css-replay-content
                       =< 8 nil
                       comp-time $ :time reply
                     div
-                      {} $ :style ui/row-middle
+                      {} $ :class-name css/row-middle
                       a $ {} (:inner-text "\"$0") (:target "\"_blank")
                         :href $ str "\"https://news.ycombinator.com/item?id=" (:id reply) "\"&noRedirect=true"
-                        :style $ {} (:font-family ui/font-fancy) (:font-size 12)
+                        :class-name css-external-link
                   let
                       content $ :text reply
                       paragraphs $ to-calcit-data
@@ -143,8 +135,7 @@
                           {} $ :style
                             {} $ :position :relative
                           div
-                            {} (:class-name "\"clickable-container")
-                              :style $ {} (:line-height 1) (:position :absolute) (:bottom 6) (:right -6)
+                            {} $ :class-name (str-spaced "\"clickable-container" css-p-content)
                             comp-icon :volume-1
                               {} (:font-size 18) (:cursor :pointer) (:line-height 1)
                                 :color $ hsl 200 80 70
@@ -167,22 +158,19 @@
                                 = "\"A" $ -> e :event .-target .-tagName
                                 do (-> e :event .!preventDefault) (-> e :event .-target .-href js/window.open)
                   div
-                    {} $ :style ui/row-parted
+                    {} $ :class-name css/row-parted
                     span nil
                     let
                         size $ count (:kids reply)
                       if (> size 0)
                         div
-                          {} (:style style-open-replies)
+                          {} (:class-name css-open-replies)
                             :on-click $ fn (e d!)
                               d! :router-after $ [] idx (:id reply)
                               d! :load-reply $ :id reply
-                          <> (str "\"Comments: ")
-                            {} (:font-family ui/font-fancy) (:font-size 12)
+                          <> (str "\"Comments: ") css-has-comment
                           <> size
-                        <> (str "\"No comments.")
-                          {} (:font-family ui/font-fancy) (:font-size 12)
-                            :color $ hsl 0 0 80
+                        <> (str "\"No comments.") css-no-comment
         |comp-reply-parent $ quote
           defcomp comp-reply-parent (reply on-close)
             if (nil? reply)
@@ -192,16 +180,10 @@
                     :color $ hsl 0 0 80
                     :padding 8
               div
-                {} $ :style
-                  {} (:padding "\"8px 16px")
-                    :border-bottom $ str "\"1px solid " (hsl 0 0 80)
-                    :max-height 200
-                    :overflow :hidden
-                    :text-overflow :ellipsis
-                    :background-color $ hsl 0 0 100
+                {} $ :class-name css-reply-parent
                 div
-                  {} $ :style
-                    merge ui/row-middle $ {} (:width "\"100%")
+                  {} (:class-name css/row-middle)
+                    :style $ {} (:width "\"100%")
                   comp-icon :x
                     {} (:font-size 14)
                       :color $ hsl 200 80 80
@@ -211,11 +193,10 @@
                   =< 6 nil
                   div $ {}
                     :innerHTML $ :text reply
-                    :style $ merge ui/expand
-                      {} (:line-height "\"22px") (:white-space :nowrap) (:max-height 22) (:overflow :hidden) (:text-overflow :ellipsis) (:font-size 16)
+                    :class-name $ str-spaced css/expand css-reply-parent-content
                 div
-                  {} $ :style
-                    merge ui/row-parted $ {} (:line-height "\"20px")
+                  {} (:class-name css/row-parted)
+                    :style $ {} (:line-height "\"20px")
                   div
                     {} $ :style
                       {} $ :color (hsl 0 0 60)
@@ -245,32 +226,17 @@
                   :padding 8
                   :font-family ui/font-fancy
               div
-                {} (:class-name "\"hoverable")
-                  :style $ merge
-                    {} (:padding "\"12px 16px") (:cursor :pointer)
-                      :border-bottom $ str "\"1px solid " (hsl 0 0 93)
-                    , style
+                {}
+                  :class-name $ str-spaced "\"hoverable" css-topic
+                  :style style
                   :on-click on-click
                 div
-                  {} $ :style
-                    {} (:font-size 14) (:text-overflow :ellipsis) (:overflow :hidden)
-                  <> (:score topic)
-                    {} (:display :inline-block) (:padding "\"0 6px")
-                      :background-color $ hsl 60 80 42
-                      :color :white
-                      :font-size 14
-                      :line-height "\"20px"
-                      :border-radius "\"16px"
-                      :font-family ui/font-fancy
+                  {} $ :class-name css-topic-title
+                  <> (:score topic) css-topic-score
                   =< 8 nil
                   <> $ :title topic
                 div
-                  {} $ :style
-                    {}
-                      :color $ hsl 0 0 50
-                      :font-family ui/font-fancy
-                      :font-size 12
-                      :line-height "\"16px"
+                  {} $ :class-name css-topic-desc
                   a $ {}
                     :inner-text $ str "\"@" (:by topic)
                   =< 12 nil
@@ -295,22 +261,22 @@
                 load-plugin $ use-prompt (>> states :load)
                   {} (:text "\"Topic id:") (:placeholder "\"use number id from hacker news url")
               div
-                {} $ :style
-                  merge ui/column $ {}
+                {} (:class-name css/column)
+                  :style $ {}
                     :width $ if no-list? 140 400
                     :height "\"100%"
                     :white-space :nowrap
                     :overflow :auto
                     :margin-right 8
                 div
-                  {} $ :style
-                    merge ui/row-middle $ {} (:padding "\"8px 16px")
+                  {} (:class-name css/row-middle)
+                    :style $ {} (:padding "\"8px 16px")
                       :border-bottom $ str "\"1px solid " (hsl 0 0 90)
                       :justify-content :flex-end
-                  a $ {} (:inner-text "\"List") (:style ui/link)
+                  a $ {} (:inner-text "\"List") (:class-name css/link)
                     :on-click $ fn (e d!) (d! :load-top10 nil)
                   =< 8 nil
-                  a $ {} (:inner-text "\"Load") (:style ui/link)
+                  a $ {} (:inner-text "\"Load") (:class-name css/link)
                     :on-click $ fn (e d!)
                       .show load-plugin d! $ fn (text) (d! :load-topic text)
                         d! :router $ {}
@@ -321,8 +287,8 @@
                     :padding 8
                     :font-family ui/font-fancy
                 list->
-                  {} $ :style
-                    merge ui/expand $ {} (:padding "\"0px 0 100px 0") (:overflow-x :hidden) (:text-overflow :ellipsis)
+                  {} (:class-name css/expand)
+                    :style $ {} (:padding "\"0px 0 100px 0") (:overflow-x :hidden) (:text-overflow :ellipsis)
                   -> (:top10 resource)
                     map $ fn (topic)
                       [] (:id topic)
@@ -354,23 +320,12 @@
                   :color $ hsl 0 0 80
                   :padding 8
               div
-                {} (:class-name "\"hoverable")
-                  :style $ {} (:padding "\"8px 16px") (:cursor :pointer)
-                    :border-bottom $ str "\"1px solid " (hsl 0 0 80)
-                    :cursor :default
-                    :background-color $ hsl 0 0 100
+                {} $ :class-name (str-spaced "\"hoverable" css-topic-parent)
                 div
-                  {} $ :style ui/row-parted
+                  {} $ :class-name css/row-parted
                   div
-                    {} $ :style (merge ui/expand ui/row-parted)
-                    <> (:score topic)
-                      {} (:display :inline-block) (:padding "\"0 6px")
-                        :background-color $ hsl 60 80 42
-                        :color :white
-                        :font-size 14
-                        :line-height "\"20px"
-                        :border-radius "\"16px"
-                        :font-family ui/font-fancy
+                    {} $ :class-name (str-spaced css/expand css/row-parted)
+                    <> (:score topic) css-topic-parent-title
                     =< 8 nil
                     <> (:title topic)
                       merge ui/expand $ {} (:font-size 16) (:text-overflow :ellipsis) (:overflow :hidden) (:white-space :nowrap)
@@ -400,6 +355,106 @@
                       :href url
                       :target "\"_blank"
                       :style $ {} (:text-overflow :ellipsis) (:overflow :hidden)
+        |css-comment-list $ quote
+          defstyle css-comment-list $ {}
+            "\"$0" $ {} (:width 500) (:max-width "\"100vw") (:height "\"100%") (:overflow-y :auto) (:margin-right 8)
+        |css-external-link $ quote
+          defstyle css-external-link $ {}
+            "\"$0" $ {} (:font-family ui/font-fancy) (:font-size 12)
+        |css-has-comment $ quote
+          defstyle css-has-comment $ {}
+            "\"$0" $ {} (:font-family ui/font-fancy) (:font-size 12)
+        |css-no-comment $ quote
+          defstyle css-no-comment $ {}
+            "\"$0" $ {} (:font-family ui/font-fancy) (:font-size 12)
+              :color $ hsl 0 0 80
+        |css-open-replies $ quote
+          defstyle css-open-replies $ {}
+            "\"$0" $ {} (:display :inline-block)
+              :background-color $ hsl 200 60 68
+              :color :white
+              :padding "\"0 12px"
+              :border-radius "\"16px"
+              :cursor :pointer
+              :user-select :none
+              :transition-duration "\"300ms"
+            "\"$0:hover" $ {}
+              :box-shadow $ str "\"1px 1px 4px " (hsl 0 0 0 0.2)
+              :background-color $ hsl 200 60 74
+            "\"$0:active" $ {} (:transform "\"scale(1.04)")
+        |css-p-content $ quote
+          defstyle css-p-content $ {}
+            "\"$0" $ {} (:line-height 1) (:position :absolute) (:bottom 6) (:right -6)
+        |css-replay-content $ quote
+          defstyle css-replay-content $ {}
+            "\"$0" $ {} (:color :black) (:font-size 14) (:font-weight :bold) (:font-family ui/font-normal)
+        |css-reply $ quote
+          defstyle css-reply $ {}
+            "\"$0" $ {} (:padding "\"8px 16px") (:border-style :solid) (:border-width "\"1px 1px 2px 1px") (:margin-bottom 16) (:border-radius "\"8px")
+              :border-color $ hsl 0 0 88
+              :background-color $ hsl 0 0 99
+            "\"$0:hover" $ {}
+              :background-color $ hsl 0 0 100
+              :box-shadow $ str "\"0px 2px 2px " (hsl 0 0 0 0.1)
+        |css-reply-parent $ quote
+          defstyle css-reply-parent $ {}
+            "\"$0" $ {} (:padding "\"8px 16px")
+              :border-bottom $ str "\"1px solid " (hsl 0 0 80)
+              :max-height 200
+              :overflow :hidden
+              :text-overflow :ellipsis
+              :background-color $ hsl 0 0 100
+        |css-reply-parent-content $ quote
+          defstyle css-reply-parent-content $ {}
+            "\"$0" $ {} (:line-height "\"22px") (:white-space :nowrap) (:max-height 22) (:overflow :hidden) (:text-overflow :ellipsis) (:font-size 16)
+        |css-topic $ quote
+          defstyle css-topic $ {}
+            "\"$0" $ {} (:padding "\"12px 16px") (:cursor :pointer)
+              :border-bottom $ str "\"1px solid " (hsl 0 0 93)
+        |css-topic-desc $ quote
+          defstyle css-topic-desc $ {}
+            "\"$0" $ {}
+              :color $ hsl 0 0 50
+              :font-family ui/font-fancy
+              :font-size 12
+              :line-height "\"16px"
+        |css-topic-labels $ quote
+          defstyle css-topic-labels $ {}
+            "\"$0" $ {} (:font-size 13) (:font-family ui/font-fancy)
+              :color $ hsl 0 0 60
+        |css-topic-parent $ quote
+          defstyle css-topic-parent $ {}
+            "\"$0" $ {} (:padding "\"8px 16px") (:cursor :pointer)
+              :border-bottom $ str "\"1px solid " (hsl 0 0 80)
+              :cursor :default
+              :background-color $ hsl 0 0 100
+        |css-topic-parent-title $ quote
+          defstyle css-topic-parent-title $ {}
+            "\"$0" $ {} (:display :inline-block) (:padding "\"0 6px")
+              :background-color $ hsl 60 80 42
+              :color :white
+              :font-size 14
+              :line-height "\"20px"
+              :border-radius "\"16px"
+              :font-family ui/font-fancy
+        |css-topic-score $ quote
+          defstyle css-topic-score $ {}
+            "\"$0" $ {} (:display :inline-block) (:padding "\"0 6px")
+              :background-color $ hsl 60 80 42
+              :color :white
+              :font-size 14
+              :line-height "\"20px"
+              :border-radius "\"16px"
+              :font-family ui/font-fancy
+        |css-topic-selected $ quote
+          defstyle css-topic-selected $ {}
+            "\"$0" $ {}
+              :border-color $ hsl 0 0 74
+              :background-color $ hsl 0 0 100
+              :box-shadow $ str "\"0px 3px 2px " (hsl 0 0 0 0.1)
+        |css-topic-title $ quote
+          defstyle css-topic-title $ {}
+            "\"$0" $ {} (:font-size 14) (:text-overflow :ellipsis) (:overflow :hidden)
         |effect-load $ quote
           defeffect effect-load (topic) (action el *local at-place?)
             let
@@ -454,40 +509,26 @@
               .!speak js/speechSynthesis instance
         |speech-via-api! $ quote
           defn speech-via-api! (text on-play on-next) (synthesizeAzureSpeech text azure-key on-play on-next)
-        |style-open-replies $ quote
-          def style-open-replies $ {} (:display :inline-block)
-            :background-color $ hsl 200 80 60
-            :color :white
-            :padding "\"0 12px"
-            :border-radius "\"16px"
-            :cursor :pointer
-            :user-select :none
-        |style-reply $ quote
-          def style-reply $ {} (:padding "\"8px 16px")
-            :border-color $ hsl 0 0 88
-            :border-style :solid
-            :border-width "\"1px 1px 2px 1px"
-            :background-color $ hsl 0 0 99
-            :margin-bottom 16
-            :border-radius "\"2px"
         |url-pattern $ quote
           def url-pattern $ new js/RegExp "\"https?:\\S+"
       :ns $ quote
         ns app.comp.container $ :require
-          [] respo-ui.core :refer $ [] hsl
-          [] respo-ui.core :as ui
-          [] respo.core :refer $ [] defcomp defeffect create-element >> <> div list-> button textarea span input section a
-          [] respo.comp.space :refer $ [] =<
-          [] reel.comp.reel :refer $ [] comp-reel
-          [] respo-md.comp.md :refer $ [] comp-md
-          [] app.config :refer $ [] dev? audio-target audio-host
-          [] respo.comp.inspect :refer $ [] comp-inspect
-          [] "\"dayjs" :default dayjs
-          [] respo-alerts.core :refer $ [] use-prompt
-          [] feather.core :refer $ [] comp-icon
+          respo-ui.core :refer $ hsl
+          respo-ui.core :as ui
+          respo.core :refer $ defcomp defeffect create-element >> <> div list-> button textarea span input section a
+          respo.comp.space :refer $ =<
+          reel.comp.reel :refer $ comp-reel
+          respo-md.comp.md :refer $ comp-md
+          app.config :refer $ dev? audio-target audio-host
+          respo.comp.inspect :refer $ comp-inspect
+          "\"dayjs" :default dayjs
+          respo-alerts.core :refer $ use-prompt
+          feather.core :refer $ comp-icon
           "\"../entry/play-audio" :refer $ synthesizeAzureSpeech
           "\"remarkable" :refer $ Remarkable
           memof.once :refer $ memof1-call-by
+          respo.css :refer $ defstyle
+          respo-ui.css :as css
     |app.config $ {}
       :defs $ {}
         |audio-host $ quote
@@ -599,11 +640,11 @@
             add-watch *reel :changes $ fn (r p) (render-app!)
             add-watch *resource :changes $ fn (r p) (render-app!)
             listen-devtools! |k dispatch!
-            .!addEventListener js/window |beforeunload persist-storage!
+            ; js/window.addEventListener |beforeunload persist-storage!
             ; let
-                raw $ .getItem js/localStorage (:storage-key config/site)
+                raw $ js/localStorage.getItem (:storage-key config/site)
               when (some? raw)
-                dispatch! :hydrate-storage $ read-string raw
+                dispatch! :hydrate-storage $ parse-cirru-edn raw
             if-let
               id $ get-env "\"id"
               do (dispatch! :load-topic id)
@@ -615,8 +656,8 @@
           def mount-target $ .querySelector js/document |.app
         |persist-storage! $ quote
           defn persist-storage! (e)
-            .setItem js/localStorage (:storage-key config/site)
-              pr-str $ :store @*reel
+            js/localStorage.setItem (:storage-key config/site)
+              format-cirru-edn $ :store @*reel
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
             do (remove-watch *reel :changes) (clear-cache!)
@@ -630,17 +671,17 @@
           defn snippets () $ println config/cdn?
       :ns $ quote
         ns app.main $ :require
-          [] respo.core :refer $ [] render! clear-cache! realize-ssr!
-          [] app.comp.container :refer $ [] comp-container
-          [] app.updater :refer $ [] updater
-          [] app.schema :as schema
-          [] reel.util :refer $ [] listen-devtools!
-          [] reel.core :refer $ [] reel-updater refresh-reel
-          [] reel.schema :as reel-schema
-          [] cljs.reader :refer $ [] read-string
-          [] app.config :as config
-          [] app.data-gather :refer $ [] *resource on-operation
-          [] clojure.string :as string
+          respo.core :refer $ render! clear-cache! realize-ssr!
+          app.comp.container :refer $ comp-container
+          app.updater :refer $ updater
+          app.schema :as schema
+          reel.util :refer $ listen-devtools!
+          reel.core :refer $ reel-updater refresh-reel
+          reel.schema :as reel-schema
+          cljs.reader :refer $ read-string
+          app.config :as config
+          app.data-gather :refer $ *resource on-operation
+          clojure.string :as string
           "\"./calcit.build-errors" :default build-errors
           "\"bottom-tip" :default hud!
     |app.schema $ {}
