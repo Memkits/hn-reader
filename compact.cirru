@@ -557,7 +557,7 @@
             let
                 data $ js-await (get-url! url)
               ; js/console.log "\"GET" data
-              keywordize-edn $ to-calcit-data data
+              tagging-edn $ to-calcit-data data
         |get-url! $ quote
           defn get-url! (url)
             -> (js/fetch url)
@@ -567,15 +567,6 @@
                   raise $ str "\"Code" (.-status response)
                 .!json response
               .!catch $ fn (error) (js/console.log "\"Failed top10" error)
-        |keywordize-edn $ quote
-          defn keywordize-edn (data)
-            cond
-                list? data
-                map data keywordize-edn
-              (map? data)
-                map-kv data $ fn (k v)
-                  [] (turn-keyword k) (keywordize-edn v)
-              true data
         |load-reply! $ quote
           defn load-reply! (reply-id) (hint-fn async)
             let
@@ -620,6 +611,15 @@
               :load-top10 $ load-top10!
               :load-topic $ load-topic! op-data
               :load-reply $ load-reply! op-data
+        |tagging-edn $ quote
+          defn tagging-edn (data)
+            cond
+                list? data
+                map data tagging-edn
+              (map? data)
+                map-kv data $ fn (k v)
+                  [] (turn-tag k) (tagging-edn v)
+              true data
       :ns $ quote (ns app.data-gather)
     |app.main $ {}
       :defs $ {}
