@@ -166,7 +166,7 @@
                         div
                           {} (:class-name css-open-replies)
                             :on-click $ fn (e d!)
-                              d! :router-after $ [] idx (:id reply)
+                              d! $ :: :router-after idx (:id reply)
                               d! :load-reply $ :id reply
                           <> (str "\"Comments: ") css-has-comment
                           <> size
@@ -605,12 +605,13 @@
                         chan-get! $ str "\"https://hacker-news.firebaseio.com/v0/item/" reply-id "\".json?print=pretty"
                     swap! *resource assoc-in ([] :replies reply-id) reply
         |on-operation $ quote
-          defn on-operation (op op-data)
-            case-default op
-              do $ println "\"Unknown op" op
-              :load-top10 $ load-top10!
-              :load-topic $ load-topic! op-data
-              :load-reply $ load-reply! op-data
+          defn on-operation (op)
+            tag-match op
+                :load-top10
+                load-top10!
+              (:load-topic d) (load-topic! d)
+              (:load-reply d) (load-reply! d)
+              _ $ do (eprintln "\"Unknown op" op)
         |tagging-edn $ quote
           defn tagging-edn (data)
             cond
@@ -626,12 +627,12 @@
         |*reel $ quote
           defatom *reel $ -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
         |dispatch! $ quote
-          defn dispatch! (op op-data)
+          defn dispatch! (op)
             when config/dev? $ println "\"Dispatch:" op
             if
-              contains? (#{} :load-top10 :load-topic :load-reply) op
-              on-operation op op-data
-              reset! *reel $ reel-updater updater @*reel op op-data
+              contains? (#{} :load-top10 :load-topic :load-reply) (nth op 0)
+              on-operation op
+              reset! *reel $ reel-updater updater @*reel op
         |main! $ quote
           defn main! ()
             if config/dev? $ load-console-formatter!
@@ -647,10 +648,11 @@
                 dispatch! :hydrate-storage $ parse-cirru-edn raw
             if-let
               id $ get-env "\"id"
-              do (dispatch! :load-topic id)
-                dispatch! :router $ {}
-                  :data $ [] id
-              dispatch! :load-top10 nil
+              do
+                dispatch! $ :: :load-topic id
+                dispatch! $ :: :router
+                  {} $ :data ([] id)
+              dispatch! $ :: :load-top10
             println "|App started."
         |mount-target $ quote
           def mount-target $ .querySelector js/document |.app
@@ -696,20 +698,21 @@
     |app.updater $ {}
       :defs $ {}
         |updater $ quote
-          defn updater (store op op-data op-id op-time)
-            case-default op
-              do (println "\"unknown op:" op) store
-              :states $ update-states store op-data
-              :content $ assoc store :content op-data
-              :router $ assoc store :router op-data
-              :router-after $ let[] (idx reply-id) op-data
+          defn updater (store op op-id op-time)
+            tag-match op
+                :states cursor s
+                update-states store cursor s
+              (:content c) (assoc store :content c)
+              (:router d) (assoc store :router d)
+              (:router-after idx reply-id)
                 update store :router $ fn (router)
                   {} $ :data
                     conj
                       .slice (:data router) 0 $ inc idx
                       , reply-id
-              :hydrate-storage op-data
-              :highlight $ assoc store :highlighted op-data
+              (:hydrate-storage d) d
+              (:highlight d) (assoc store :highlighted d)
+              _ $ do (eprintln "\"unknown op:" op) store
       :ns $ quote
         ns app.updater $ :require
           [] respo.cursor :refer $ [] update-states
