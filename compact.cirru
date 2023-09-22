@@ -103,7 +103,8 @@
           :code $ quote
             defcomp comp-reply (reply selected? highlighted-idx idx)
               if (nil? reply)
-                div ({})
+                div
+                  {} $ :class-name style-reply-empty
                   <> (str "\"Data from network")
                     {}
                       :color $ hsl 0 0 80
@@ -411,6 +412,9 @@
               "\"$0" $ {} (:padding "\"8px 16px") (:border-style :solid) (:border-width "\"1px 1px 2px 1px") (:margin-bottom 16) (:border-radius "\"8px")
                 :border-color $ hsl 0 0 88
                 :background-color $ hsl 0 0 99
+                :transition-duration "\"300ms"
+                :transition-property "\"max-height,background-color"
+                :max-height 400
               "\"$0:hover" $ {}
                 :background-color $ hsl 0 0 100
                 :box-shadow $ str "\"0px 2px 2px " (hsl 0 0 0 0.1)
@@ -543,6 +547,13 @@
         |speech-via-api! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn speech-via-api! (text on-play on-next) (synthesizeAzureSpeech text azure-key on-play on-next)
+        |style-reply-empty $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-reply-empty $ {}
+              "\"&" $ {} (:transition-duration "\"300ms")
+                :background-color $ hsl 0 0 99 0
+                :transition-property "\"max-height,background-color"
+                :max-height 40
         |url-pattern $ %{} :CodeEntry (:doc |)
           :code $ quote
             def url-pattern $ new js/RegExp "\"https?:\\S+"
