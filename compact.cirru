@@ -108,7 +108,6 @@
                   <> (str "\"Data from network")
                     {}
                       :color $ hsl 0 0 80
-                      :padding 8
                       :font-family ui/font-fancy
                 let
                     has-kids $ >
@@ -409,12 +408,12 @@
         |css-reply $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-reply $ {}
-              "\"$0" $ {} (:padding "\"8px 16px") (:border-style :solid) (:border-width "\"1px 1px 2px 1px") (:margin-bottom 16) (:border-radius "\"8px")
-                :border-color $ hsl 0 0 88
-                :background-color $ hsl 0 0 99
-                :transition-duration "\"300ms"
-                :transition-property "\"max-height,background-color"
-                :max-height 400
+              "\"$0" $ merge style-reply-box
+                {} (:padding "\"8px 16px") (:border-style :solid) (:border-width "\"1px 1px 2px 1px") (:margin-bottom 16) (:border-radius "\"8px")
+                  :border-color $ hsl 0 0 88
+                  :background-color $ hsl 0 0 99
+                  :max-height 600
+                  :overflow :auto
               "\"$0:hover" $ {}
                 :background-color $ hsl 0 0 100
                 :box-shadow $ str "\"0px 2px 2px " (hsl 0 0 0 0.1)
@@ -547,13 +546,17 @@
         |speech-via-api! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn speech-via-api! (text on-play on-next) (synthesizeAzureSpeech text azure-key on-play on-next)
+        |style-reply-box $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            def style-reply-box $ {} (:padding "\"8px 16px") (:border-width "\"1px 1px 2px 1px") (:transition-duration "\"400ms") (:transition-property "\"max-height,height,background-color,margin-bottom") (:transition-timing-function :linear)
         |style-reply-empty $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-reply-empty $ {}
-              "\"&" $ {} (:transition-duration "\"300ms")
-                :background-color $ hsl 0 0 99 0
-                :transition-property "\"max-height,background-color"
-                :max-height 40
+              "\"&" $ merge style-reply-box
+                {} (:padding "\"8px 16px") (:border-width "\"1px 1px 2px 1px")
+                  :background-color $ hsl 0 0 99 0
+                  :max-height 40
+                  :margin-bottom 0
         |url-pattern $ %{} :CodeEntry (:doc |)
           :code $ quote
             def url-pattern $ new js/RegExp "\"https?:\\S+"
