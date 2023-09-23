@@ -42,7 +42,8 @@
                               map $ fn (reply-id)
                                 [] reply-id $ let
                                     reply $ get-in resource ([] :replies reply-id)
-                                  memof1-call-by reply-id comp-reply reply
+                                    k $ str parent-id "\"+" reply-id
+                                  memof1-call-by k comp-reply reply
                                     contains? (.to-set coord) reply-id
                                     if
                                       = (first highlighted) reply-id
@@ -102,80 +103,81 @@
         |comp-reply $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-reply (reply selected? highlighted-idx idx)
-              if (nil? reply)
-                div
-                  {} $ :class-name style-reply-empty
-                  <> (str "\"Data from network")
-                    {}
-                      :color $ hsl 0 0 80
-                      :font-family ui/font-fancy
-                let
-                    has-kids $ >
-                      count $ :kids reply
-                      , 0
+              []
+                effect-height! $ some? reply
+                if
+                  or $ nil? reply
                   div
-                    {} $ :class-name
-                      str-spaced "\"reply" css-reply $ if selected? css-topic-selected
+                    {} $ :class-name style-reply-empty
+                    <> (str "\"Data from network")
+                      {} $ :font-family ui/font-fancy
+                  let
+                      has-kids $ >
+                        count $ :kids reply
+                        , 0
                     div
-                      {} $ :class-name css/row-parted
+                      {} $ :class-name
+                        str-spaced "\"reply" css-reply $ if selected? css-topic-selected
                       div
-                        {} $ :class-name (str-spaced css/row-middle css-topic-labels)
-                        <>
-                          str $ :by reply
-                          , css-replay-content
-                        =< 8 nil
-                        comp-time $ :time reply
-                      div
-                        {} $ :class-name css/row-middle
-                        a $ {} (:inner-text "\"$0") (:target "\"_blank")
-                          :href $ str "\"https://news.ycombinator.com/item?id=" (:id reply) "\"&noRedirect=true"
-                          :class-name css-external-link
-                    let
-                        content $ :text reply
-                        paragraphs $ to-calcit-data
-                          .!split (either content "\"") pattern-lines
-                      list-> ({})
-                        map-indexed paragraphs $ fn (idx block)
-                          [] idx $ div
-                            {} $ :style
-                              {} $ :position :relative
-                            div
-                              {} $ :class-name (str-spaced "\"clickable-container" css-p-content)
-                              comp-icon :volume-1
-                                {} (:font-size 18) (:cursor :pointer) (:line-height 1)
-                                  :color $ hsl 200 80 70
-                                fn (e d!)
-                                  case-default audio-target
-                                    read-text! $ do (html->readable block)
-                                      d! :highlight $ [] (:id reply) idx
-                                    "\"azure" $ speech-via-api! (html->readable block)
-                                      fn () $ d! :highlight
-                                        [] (:id reply) idx
-                                      fn $
-                            div $ {}
-                              :innerHTML $ wo-log (.!render markdown-reader block)
-                              :style $ merge
-                                {} (:line-height "\"20px") (:font-size 14)
-                                if (= idx highlighted-idx)
-                                  {} $ :background-color (hsl 80 80 90)
-                              :on-click $ fn (e d!)
-                                if
-                                  = "\"A" $ -> e :event .-target .-tagName
-                                  do (-> e :event .!preventDefault) (-> e :event .-target .-href js/window.open)
-                    div
-                      {} $ :class-name css/row-parted
-                      span nil
+                        {} $ :class-name css/row-parted
+                        div
+                          {} $ :class-name (str-spaced css/row-middle css-topic-labels)
+                          <>
+                            str $ :by reply
+                            , css-replay-content
+                          =< 8 nil
+                          comp-time $ :time reply
+                        div
+                          {} $ :class-name css/row-middle
+                          a $ {} (:inner-text "\"$0") (:target "\"_blank")
+                            :href $ str "\"https://news.ycombinator.com/item?id=" (:id reply) "\"&noRedirect=true"
+                            :class-name css-external-link
                       let
-                          size $ count (:kids reply)
-                        if (> size 0)
-                          div
-                            {} (:class-name css-open-replies)
-                              :on-click $ fn (e d!)
-                                d! $ :: :router-after idx (:id reply)
-                                d! :load-reply $ :id reply
-                            <> (str "\"Comments: ") css-has-comment
-                            <> size
-                          <> (str "\"No comments.") css-no-comment
+                          content $ :text reply
+                          paragraphs $ to-calcit-data
+                            .!split (either content "\"") pattern-lines
+                        list-> ({})
+                          map-indexed paragraphs $ fn (idx block)
+                            [] idx $ div
+                              {} $ :style
+                                {} $ :position :relative
+                              div
+                                {} $ :class-name (str-spaced "\"clickable-container" css-p-content)
+                                comp-icon :volume-1
+                                  {} (:font-size 18) (:cursor :pointer) (:line-height 1)
+                                    :color $ hsl 200 80 70
+                                  fn (e d!)
+                                    case-default audio-target
+                                      read-text! $ do (html->readable block)
+                                        d! :highlight $ [] (:id reply) idx
+                                      "\"azure" $ speech-via-api! (html->readable block)
+                                        fn () $ d! :highlight
+                                          [] (:id reply) idx
+                                        fn $
+                              div $ {}
+                                :innerHTML $ wo-log (.!render markdown-reader block)
+                                :style $ merge
+                                  {} (:line-height "\"20px") (:font-size 14)
+                                  if (= idx highlighted-idx)
+                                    {} $ :background-color (hsl 80 80 90)
+                                :on-click $ fn (e d!)
+                                  if
+                                    = "\"A" $ -> e :event .-target .-tagName
+                                    do (-> e :event .!preventDefault) (-> e :event .-target .-href js/window.open)
+                      div
+                        {} $ :class-name css/row-parted
+                        span nil
+                        let
+                            size $ count (:kids reply)
+                          if (> size 0)
+                            div
+                              {} (:class-name css-open-replies)
+                                :on-click $ fn (e d!)
+                                  d! $ :: :router-after idx (:id reply)
+                                  d! :load-reply $ :id reply
+                              <> (str "\"Comments: ") css-has-comment
+                              <> size
+                            <> (str "\"No comments.") css-no-comment
         |comp-reply-parent $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-reply-parent (reply on-close)
@@ -412,8 +414,8 @@
                 {} (:padding "\"8px 16px") (:border-style :solid) (:border-width "\"1px 1px 2px 1px") (:margin-bottom 16) (:border-radius "\"8px")
                   :border-color $ hsl 0 0 88
                   :background-color $ hsl 0 0 99
-                  :max-height 600
-                  :overflow :auto
+                  :opacity 1
+              "\"&::-webkit-scrollbar" $ {} (:width "\"0px") (:height "\"0px")
               "\"$0:hover" $ {}
                 :background-color $ hsl 0 0 100
                 :box-shadow $ str "\"0px 2px 2px " (hsl 0 0 0 0.1)
@@ -486,6 +488,15 @@
           :code $ quote
             defstyle css-topic-title $ {}
               "\"$0" $ {} (:font-size 14) (:text-overflow :ellipsis) (:overflow :hidden)
+        |effect-height! $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defeffect effect-height! (open?) (action el at?)
+              if
+                or (= action :mount) (= action :update)
+                -> el .-style .-maxHeight $ set!
+                  str
+                    + 16 $ .-scrollHeight el
+                    , "\"px"
         |effect-load $ %{} :CodeEntry (:doc |)
           :code $ quote
             defeffect effect-load (topic) (action el *local at-place?)
@@ -548,15 +559,16 @@
             defn speech-via-api! (text on-play on-next) (synthesizeAzureSpeech text azure-key on-play on-next)
         |style-reply-box $ %{} :CodeEntry (:doc |)
           :code $ quote
-            def style-reply-box $ {} (:padding "\"8px 16px") (:border-width "\"1px 1px 2px 1px") (:transition-duration "\"400ms") (:transition-property "\"max-height,height,background-color,margin-bottom") (:transition-timing-function :linear)
+            def style-reply-box $ {} (:padding "\"8px 16px") (:border-width "\"1px 1px 2px 1px") (:transition-duration "\"120ms") (:transition-property "\"max-height,height,background-color,margin-bottom,opacity") (; :transition-timing-function "\"cubic-bezier(0.155, 0.495, 0.555, 1.230)") (:transition-timing-function :linear) (:overflow :auto) (:max-height 40)
         |style-reply-empty $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-reply-empty $ {}
               "\"&" $ merge style-reply-box
                 {} (:padding "\"8px 16px") (:border-width "\"1px 1px 2px 1px")
                   :background-color $ hsl 0 0 99 0
-                  :max-height 40
                   :margin-bottom 0
+                  :opacity 0.2
+              "\"&::-webkit-scrollbar" $ {} (:width "\"0px") (:height "\"0px")
         |url-pattern $ %{} :CodeEntry (:doc |)
           :code $ quote
             def url-pattern $ new js/RegExp "\"https?:\\S+"
