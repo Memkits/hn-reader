@@ -69,6 +69,16 @@
                   comp-comment-list router resource $ :highlighted store
                   div $ {}
                     :style $ {} (:width "\"80vw")
+                  div
+                    {} $ :style
+                      {} $ :padding "\"16px 16px"
+                    div ({}) (<> "\"HN Reader on GitHub")
+                    div ({})
+                      a $ {}
+                        :style $ {} (:font-size 12) (:text-decoration :none) (:line-height "\"12px") (:font-family ui/font-fancy)
+                        :target "\"_blank"
+                        :inner-text "\"https://github.com/Memkits/hn-reader"
+                        :href "\"https://github.com/Memkits/hn-reader"
                   when dev? $ comp-inspect "\"store" store
                     {} $ :bottom 0
                   when dev? $ comp-reel (>> states :reel) reel ({})
@@ -139,21 +149,23 @@
                         list-> ({})
                           map-indexed paragraphs $ fn (idx block)
                             [] idx $ div
-                              {} $ :style
-                                {} $ :position :relative
-                              div
-                                {} $ :class-name (str-spaced "\"clickable-container" css-p-content)
-                                comp-icon :volume-1
-                                  {} (:font-size 18) (:cursor :pointer) (:line-height 1)
-                                    :color $ hsl 200 80 70
-                                  fn (e d!)
-                                    case-default audio-target
-                                      read-text! $ do (html->readable block)
-                                        d! :highlight $ [] (:id reply) idx
-                                      "\"azure" $ speech-via-api! (html->readable block)
-                                        fn () $ d! :highlight
-                                          [] (:id reply) idx
-                                        fn $
+                              {}
+                                :style $ {} (:position :relative)
+                                :class-name style-reply-paragraph
+                              if (some? config/audio-target)
+                                div
+                                  {} $ :class-name (str-spaced "\"clickable-container" css-p-content)
+                                  comp-icon :volume-1
+                                    {} (:font-size 18) (:cursor :pointer) (:line-height 1)
+                                      :color $ hsl 200 80 70
+                                    fn (e d!)
+                                      case-default audio-target
+                                        read-text! $ do (html->readable block)
+                                          d! :highlight $ [] (:id reply) idx
+                                        "\"azure" $ speech-via-api! (html->readable block)
+                                          fn () $ d! :highlight
+                                            [] (:id reply) idx
+                                          fn $
                               div $ {}
                                 :innerHTML $ wo-log (.!render markdown-reader block)
                                 :style $ merge
@@ -274,25 +286,18 @@
                 div
                   {} (:class-name css/column)
                     :style $ {}
-                      :width $ if no-list? 140 400
+                      :width $ if no-list? 40 400
                       :height "\"100%"
                       :white-space :nowrap
                       :overflow :auto
-                      :margin-right 8
                   div
                     {} (:class-name css/row-middle)
-                      :style $ {} (:padding "\"8px 16px")
+                      :style $ {} (:padding "\"8px 4px")
                         :border-bottom $ str "\"1px solid " (hsl 0 0 90)
                         :justify-content :flex-end
                     a $ {} (:inner-text "\"List") (:class-name css/link)
                       :on-click $ fn (e d!) (d! :load-top10 nil)
-                    =< 8 nil
-                    a $ {} (:inner-text "\"Load") (:class-name css/link)
-                      :on-click $ fn (e d!)
-                        .show load-plugin d! $ fn (text) (d! :load-topic text)
-                          d! :router $ {}
-                            :data $ [] text
-                  if no-list? $ <> (str "\"Empty list yet.")
+                  if no-list? $ <> (str "\"none.")
                     {}
                       :color $ hsl 0 0 80
                       :padding 8
@@ -313,15 +318,14 @@
                               d! :router $ {}
                                 :data $ [] (:id topic)
                   div
-                    {} $ :style
-                      {} $ :padding "\"16px 16px"
-                    div ({}) (<> "\"HN Reader on GitHub")
-                    div ({})
-                      a $ {}
-                        :style $ {} (:font-size 12) (:text-decoration :none) (:line-height "\"12px") (:font-family ui/font-fancy)
-                        :target "\"_blank"
-                        :inner-text "\"https://github.com/Memkits/hn-reader"
-                        :href "\"https://github.com/Memkits/hn-reader"
+                    {} $ :class-name css/row-parted
+                    span nil
+                    a $ {} (:inner-text "\"Load")
+                      :class-name $ str-spaced css/link css/font-fancy! style-load
+                      :on-click $ fn (e d!)
+                        .show load-plugin d! $ fn (text) (d! :load-topic text)
+                          d! :router $ {}
+                            :data $ [] text
                   .render load-plugin
         |comp-topic-parent $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -557,6 +561,10 @@
         |speech-via-api! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn speech-via-api! (text on-play on-next) (synthesizeAzureSpeech text azure-key on-play on-next)
+        |style-load $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-load $ {}
+              "\"&" $ {} (:opacity 0.5) (:font-size 12)
         |style-reply-box $ %{} :CodeEntry (:doc |)
           :code $ quote
             def style-reply-box $ {} (:padding "\"8px 16px") (:border-width "\"1px 1px 2px 1px") (:transition-duration "\"120ms") (:transition-property "\"max-height,height,background-color,margin-bottom,opacity") (; :transition-timing-function "\"cubic-bezier(0.155, 0.495, 0.555, 1.230)") (:transition-timing-function :linear) (:overflow :auto) (:max-height 40)
@@ -569,6 +577,23 @@
                   :margin-bottom 0
                   :opacity 0.2
               "\"&::-webkit-scrollbar" $ {} (:width "\"0px") (:height "\"0px")
+        |style-reply-paragraph $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-reply-paragraph $ {}
+              "\"&" $ {}
+                :color $ hsl 0 0 50
+                :position :relative
+                :transition-delay "\"100ms"
+              "\"& ::before" $ {} (:content "\"''") (:width 3) (:position :absolute) (:height "\"100%")
+                :background-color $ hsl 0 0 70
+                :left -17
+                :opacity 0
+                :transition-duration "\"200ms"
+                :transition-delay "\"0ms"
+              "\"&:hover" $ {}
+                :color $ hsl 0 0 30
+                :transition-delay "\"0ms"
+              "\"&:hover ::before" $ {} (:opacity 1) (:transition-delay "\"40ms")
         |url-pattern $ %{} :CodeEntry (:doc |)
           :code $ quote
             def url-pattern $ new js/RegExp "\"https?:\\S+"
@@ -591,6 +616,7 @@
             memof.once :refer $ memof1-call-by
             respo.css :refer $ defstyle
             respo-ui.css :as css
+            app.config :as config
     |app.config $ %{} :FileEntry
       :defs $ {}
         |audio-host $ %{} :CodeEntry (:doc |)
@@ -723,7 +749,7 @@
               println "|App started."
         |mount-target $ %{} :CodeEntry (:doc |)
           :code $ quote
-            def mount-target $ .querySelector js/document |.app
+            def mount-target $ js/document.querySelector |.app
         |persist-storage! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn persist-storage! (e)
