@@ -88,22 +88,15 @@
               if (some? topic)
                 [] (effect-load topic)
                   div
-                    {} (:class-name css/column)
-                      :style $ {} (:width 640)
-                        :background-color $ hsl 0 0 100
-                        :margin-right 8
-                        :max-width "\"100vw"
+                    {} $ :class-name (str-spaced css/column style-iframe-container)
                     div
-                      {} (:class-name css/row-parted)
-                        :style $ {} (:padding "\"0 8px") (:overflow :hidden) (:width "\"100%")
-                          :background-color $ hsl 0 0 95
-                          :white-space :nowrap
-                          :border-bottom $ str "\"1px solid " (hsl 0 0 86)
+                      {} $ :class-name (str-spaced css/row-parted style-address)
                       a $ {}
                         :inner-text $ :url topic
                         :href $ :url topic
                         :target "\"_blank"
-                      span $ {} (:inner-text "\"full") (:class-name css/link)
+                      span $ {} (:inner-text "\"Full") (:class-name css/link)
+                        :style $ {} (:height "\"16px")
                         :on-click $ fn (e d!) (js/document.body.requestFullscreen)
                     create-element :iframe $ {} (:class-name css/expand)
                       :style $ {} (:border :none)
@@ -392,7 +385,7 @@
           :code $ quote
             defstyle css-open-replies $ {}
               "\"$0" $ {} (:display :inline-block)
-                :background-color $ hsl 200 60 68
+                :background-color $ hsl 180 40 68
                 :color :white
                 :padding "\"0 12px"
                 :border-radius "\"16px"
@@ -400,7 +393,7 @@
                 :user-select :none
                 :transition-duration "\"300ms"
               "\"$0:hover" $ {}
-                :box-shadow $ str "\"1px 1px 4px " (hsl 0 0 0 0.2)
+                :box-shadow $ str "\"1px 1px 4px " (hsl 0 0 0 0.1)
                 :background-color $ hsl 200 60 74
               "\"$0:active" $ {} (:transform "\"scale(1.04)")
         |css-p-content $ %{} :CodeEntry (:doc |)
@@ -561,6 +554,20 @@
         |speech-via-api! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn speech-via-api! (text on-play on-next) (synthesizeAzureSpeech text azure-key on-play on-next)
+        |style-address $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-address $ {}
+              "\"&" $ {} (:padding "\"0 8px") (:overflow :hidden) (:width "\"100%")
+                :background-color $ hsl 0 0 95
+                :white-space :nowrap
+                :border-bottom $ str "\"1px solid " (hsl 0 0 86)
+        |style-iframe-container $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-iframe-container $ {}
+              "\"&" $ {} (:width "\"max(640px, 48vw)")
+                :background-color $ hsl 0 0 100
+                :margin-right 8
+                :max-width "\"100vw"
         |style-load $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-load $ {}
