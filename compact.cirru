@@ -584,7 +584,7 @@
                 :color $ hsl 0 0 50
                 :position :relative
                 :transition-delay "\"100ms"
-              "\"& ::before" $ {} (:content "\"''") (:width 3) (:position :absolute) (:height "\"100%")
+              "\"&::before" $ {} (:content "\"''") (:width 3) (:position :absolute) (:height "\"100%")
                 :background-color $ hsl 0 0 70
                 :left -17
                 :opacity 0
@@ -593,7 +593,7 @@
               "\"&:hover" $ {}
                 :color $ hsl 0 0 30
                 :transition-delay "\"0ms"
-              "\"&:hover ::before" $ {} (:opacity 1) (:transition-delay "\"40ms")
+              "\"&:hover::before" $ {} (:opacity 1) (:transition-delay "\"40ms")
         |url-pattern $ %{} :CodeEntry (:doc |)
           :code $ quote
             def url-pattern $ new js/RegExp "\"https?:\\S+"
