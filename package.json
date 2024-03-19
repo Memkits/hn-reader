@@ -12,11 +12,11 @@
   "license": "MIT",
   "devDependencies": {
     "bottom-tip": "^0.1.5",
-    "microsoft-cognitiveservices-speech-sdk": "^1.33.1",
-    "vite": "^5.0.5"
+    "microsoft-cognitiveservices-speech-sdk": "^1.36.0",
+    "vite": "^5.1.6"
   },
   "dependencies": {
-    "@calcit/procs": "^0.8.13",
+    "@calcit/procs": "^0.8.43",
     "@calcit/std": "^0.0.3",
     "dayjs": "^1.11.10",
     "feather-icons": "^4.29.1",
