@@ -12,14 +12,14 @@
   "license": "MIT",
   "devDependencies": {
     "bottom-tip": "^0.1.5",
-    "microsoft-cognitiveservices-speech-sdk": "^1.36.0",
-    "vite": "^5.1.6"
+    "microsoft-cognitiveservices-speech-sdk": "^1.40.0",
+    "vite": "^5.4.7"
   },
   "dependencies": {
-    "@calcit/procs": "^0.8.43",
+    "@calcit/procs": "^0.9.5",
     "@calcit/std": "^0.0.3",
-    "dayjs": "^1.11.10",
-    "feather-icons": "^4.29.1",
+    "dayjs": "^1.11.13",
+    "feather-icons": "^4.29.2",
     "remarkable": "^2.0.1",
     "shortid": "^2.2.16"
   }
