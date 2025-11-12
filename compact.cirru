@@ -9,6 +9,7 @@
         |azure-key $ %{} :CodeEntry (:doc |)
           :code $ quote
             def azure-key $ or (get-env "\"azure-key") (js/localStorage.getItem "\"azure-key")
+          :examples $ []
         |comp-comment-list $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-comment-list (router resource highlighted)
@@ -50,6 +51,7 @@
                                       last highlighted
                                       , nil
                                     , idx
+          :examples $ []
         |comp-container $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-container (reel resource)
@@ -82,6 +84,7 @@
                   when dev? $ comp-inspect "\"store" store
                     {} $ :bottom 0
                   when dev? $ comp-reel (>> states :reel) reel ({})
+          :examples $ []
         |comp-frame $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-frame (topic)
@@ -103,6 +106,7 @@
                       :id "\"frame"
                       :innerHTML "\"Not loaded."
                 span nil
+          :examples $ []
         |comp-reply $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-reply (reply selected? highlighted-idx idx)
@@ -183,6 +187,7 @@
                               <> (str "\"Comments: ") css-has-comment
                               <> size
                             <> (str "\"No comments.") css-no-comment
+          :examples $ []
         |comp-reply-parent $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-reply-parent (reply on-close)
@@ -219,6 +224,7 @@
                       =< 8 nil
                       <> $ str "\"Comments: "
                         count $ :kids reply
+          :examples $ []
         |comp-time $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-time (time)
@@ -231,6 +237,7 @@
                     <> $ .!format time-obj "\"MM-DD HH:mm"
                     <> $ .!format time-obj "\"YYYY-MM-DD HH:mm"
                 <> "\"nil"
+          :examples $ []
         |comp-topic $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-topic (topic style on-click)
@@ -267,6 +274,7 @@
                         :href url
                         :target "\"_blank"
                         :style $ {} (:text-overflow :ellipsis) (:overflow :hidden)
+          :examples $ []
         |comp-topic-list $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-topic-list (states resource focus-id)
@@ -320,6 +328,7 @@
                           d! :router $ {}
                             :data $ [] text
                   .render load-plugin
+          :examples $ []
         |comp-topic-parent $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-topic-parent (topic)
@@ -364,23 +373,28 @@
                         :href url
                         :target "\"_blank"
                         :style $ {} (:text-overflow :ellipsis) (:overflow :hidden)
+          :examples $ []
         |css-comment-list $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-comment-list $ {}
               "\"$0" $ {} (:width 500) (:max-width "\"100vw") (:height "\"100%") (:overflow-y :auto) (:margin-right 8)
+          :examples $ []
         |css-external-link $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-external-link $ {}
               "\"$0" $ {} (:font-family ui/font-fancy) (:font-size 12)
+          :examples $ []
         |css-has-comment $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-has-comment $ {}
               "\"$0" $ {} (:font-family ui/font-fancy) (:font-size 12)
+          :examples $ []
         |css-no-comment $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-no-comment $ {}
               "\"$0" $ {} (:font-family ui/font-fancy) (:font-size 12)
                 :color $ hsl 0 0 80
+          :examples $ []
         |css-open-replies $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-open-replies $ {}
@@ -396,14 +410,17 @@
                 :box-shadow $ str "\"1px 1px 4px " (hsl 0 0 0 0.1)
                 :background-color $ hsl 200 60 74
               "\"$0:active" $ {} (:transform "\"scale(1.04)")
+          :examples $ []
         |css-p-content $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-p-content $ {}
               "\"$0" $ {} (:line-height 1) (:position :absolute) (:bottom 6) (:right -6)
+          :examples $ []
         |css-replay-content $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-replay-content $ {}
               "\"$0" $ {} (:color :black) (:font-size 14) (:font-weight :bold) (:font-family ui/font-normal)
+          :examples $ []
         |css-reply $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-reply $ {}
@@ -416,6 +433,7 @@
               "\"$0:hover" $ {}
                 :background-color $ hsl 0 0 100
                 :box-shadow $ str "\"0px 2px 2px " (hsl 0 0 0 0.1)
+          :examples $ []
         |css-reply-parent $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-reply-parent $ {}
@@ -425,15 +443,18 @@
                 :overflow :hidden
                 :text-overflow :ellipsis
                 :background-color $ hsl 0 0 100
+          :examples $ []
         |css-reply-parent-content $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-reply-parent-content $ {}
               "\"$0" $ {} (:line-height "\"22px") (:white-space :nowrap) (:max-height 22) (:overflow :hidden) (:text-overflow :ellipsis) (:font-size 16)
+          :examples $ []
         |css-topic $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-topic $ {}
               "\"$0" $ {} (:padding "\"12px 16px") (:cursor :pointer)
                 :border-bottom $ str "\"1px solid " (hsl 0 0 93)
+          :examples $ []
         |css-topic-desc $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-topic-desc $ {}
@@ -442,11 +463,13 @@
                 :font-family ui/font-fancy
                 :font-size 12
                 :line-height "\"16px"
+          :examples $ []
         |css-topic-labels $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-topic-labels $ {}
               "\"$0" $ {} (:font-size 13) (:font-family ui/font-fancy)
                 :color $ hsl 0 0 60
+          :examples $ []
         |css-topic-parent $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-topic-parent $ {}
@@ -454,6 +477,7 @@
                 :border-bottom $ str "\"1px solid " (hsl 0 0 80)
                 :cursor :default
                 :background-color $ hsl 0 0 100
+          :examples $ []
         |css-topic-parent-title $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-topic-parent-title $ {}
@@ -464,6 +488,7 @@
                 :line-height "\"20px"
                 :border-radius "\"16px"
                 :font-family ui/font-fancy
+          :examples $ []
         |css-topic-score $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-topic-score $ {}
@@ -474,6 +499,7 @@
                 :line-height "\"20px"
                 :border-radius "\"16px"
                 :font-family ui/font-fancy
+          :examples $ []
         |css-topic-selected $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-topic-selected $ {}
@@ -481,10 +507,12 @@
                 :border-color $ hsl 0 0 74
                 :background-color $ hsl 0 0 100
                 :box-shadow $ str "\"0px 3px 2px " (hsl 0 0 0 0.1)
+          :examples $ []
         |css-topic-title $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-topic-title $ {}
               "\"$0" $ {} (:font-size 14) (:text-overflow :ellipsis) (:overflow :hidden)
+          :examples $ []
         |effect-height! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defeffect effect-height! (open?) (action el at?)
@@ -494,6 +522,7 @@
                   str
                     + 16 $ .-scrollHeight el
                     , "\"px"
+          :examples $ []
         |effect-load $ %{} :CodeEntry (:doc |)
           :code $ quote
             defeffect effect-load (topic) (action el *local at-place?)
@@ -510,6 +539,7 @@
                         timeout-call 30 $ fn ()
                           .!setAttribute target "\"src" $ :url topic
                     .!setAttribute target "\"src" $ str "\"data:," (js/encodeURIComponent "\"no url to display.")
+          :examples $ []
         |html->readable $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn html->readable (html)
@@ -521,13 +551,16 @@
                     .!replace (new js/RegExp "\"<li>" "\"g") (str "\" " "\"<li>" "\" ")
                 -> (.-innerText el) (either "\"")
                   .!replace (new js/RegExp "\"https?://\\S+" "\"g") "\"."
+          :examples $ []
         |markdown-reader $ %{} :CodeEntry (:doc |)
           :code $ quote
             def markdown-reader $ new Remarkable
               js-object $ :html true
+          :examples $ []
         |pattern-lines $ %{} :CodeEntry (:doc |)
           :code $ quote
             def pattern-lines $ new js/RegExp "\"<p>"
+          :examples $ []
         |read-text! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn read-text! (text)
@@ -551,9 +584,11 @@
                 set! (.-voice instance) samantha-voice
                 .!cancel js/speechSynthesis
                 .!speak js/speechSynthesis instance
+          :examples $ []
         |speech-via-api! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn speech-via-api! (text on-play on-next) (synthesizeAzureSpeech text azure-key on-play on-next)
+          :examples $ []
         |style-address $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-address $ {}
@@ -561,6 +596,7 @@
                 :background-color $ hsl 0 0 95
                 :white-space :nowrap
                 :border-bottom $ str "\"1px solid " (hsl 0 0 86)
+          :examples $ []
         |style-iframe-container $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-iframe-container $ {}
@@ -568,13 +604,16 @@
                 :background-color $ hsl 0 0 100
                 :margin-right 8
                 :max-width "\"100vw"
+          :examples $ []
         |style-load $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-load $ {}
               "\"&" $ {} (:opacity 0.5) (:font-size 12)
+          :examples $ []
         |style-reply-box $ %{} :CodeEntry (:doc |)
           :code $ quote
             def style-reply-box $ {} (:padding "\"8px 16px") (:border-width "\"1px 1px 2px 1px") (:transition-duration "\"120ms") (:transition-property "\"max-height,height,background-color,margin-bottom,opacity") (; :transition-timing-function "\"cubic-bezier(0.155, 0.495, 0.555, 1.230)") (:transition-timing-function :linear) (:overflow :auto) (:max-height 40)
+          :examples $ []
         |style-reply-empty $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-reply-empty $ {}
@@ -584,6 +623,7 @@
                   :margin-bottom 0
                   :opacity 0.2
               "\"&::-webkit-scrollbar" $ {} (:width "\"0px") (:height "\"0px")
+          :examples $ []
         |style-reply-paragraph $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-reply-paragraph $ {}
@@ -601,9 +641,11 @@
                 :color $ hsl 0 0 30
                 :transition-delay "\"0ms"
               "\"&:hover::before" $ {} (:opacity 1) (:transition-delay "\"40ms")
+          :examples $ []
         |url-pattern $ %{} :CodeEntry (:doc |)
           :code $ quote
             def url-pattern $ new js/RegExp "\"https?:\\S+"
+          :examples $ []
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns app.comp.container $ :require
@@ -629,15 +671,19 @@
         |audio-host $ %{} :CodeEntry (:doc |)
           :code $ quote
             def audio-host $ get-env "\"audio-host"
+          :examples $ []
         |audio-target $ %{} :CodeEntry (:doc |)
           :code $ quote
             def audio-target $ or (get-env "\"audio-target") (js/localStorage.getItem "\"audio-target")
+          :examples $ []
         |dev? $ %{} :CodeEntry (:doc |)
           :code $ quote
             def dev? $ = "\"dev" (get-env "\"mode" "\"release")
+          :examples $ []
         |site $ %{} :CodeEntry (:doc |)
           :code $ quote
             def site $ {} (:dev-ui "\"http://localhost:8100/main-fonts.css") (:release-ui "\"http://cdn.tiye.me/favored-fonts/main-fonts.css") (:cdn-url "\"http://cdn.tiye.me/hn-reader/") (:title "\"HN Reader") (:icon "\"http://cdn.tiye.me/logo/memkits.png") (:storage-key "\"hn-reader")
+          :examples $ []
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote (ns app.config)
     |app.data-gather $ %{} :FileEntry
@@ -648,6 +694,7 @@
               :top10 $ []
               :topics $ {}
               :replies $ {}
+          :examples $ []
         |data-get! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn data-get! (url) (hint-fn async)
@@ -655,6 +702,7 @@
                   data $ js-await (get-url! url)
                 ; js/console.log "\"GET" data
                 tagging-edn $ to-calcit-data data
+          :examples $ []
         |get-url! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn get-url! (url)
@@ -665,6 +713,7 @@
                     raise $ str "\"Code" (.-status response)
                   .!json response
                 .!catch $ fn (error) (js/console.log "\"Failed top10" error)
+          :examples $ []
         |load-reply! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn load-reply! (reply-id) (hint-fn async)
@@ -678,6 +727,7 @@
                         reply $ js-await
                           data-get! $ str "\"https://hacker-news.firebaseio.com/v0/item/" reply-id "\".json?print=pretty"
                       swap! *resource assoc-in ([] :replies reply-id) reply
+          :examples $ []
         |load-top10! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn load-top10! () (hint-fn async)
@@ -692,6 +742,7 @@
                           data-get! $ str "\"https://hacker-news.firebaseio.com/v0/item/" (wo-js-log topic-id) "\".json?print=pretty"
                       swap! *resource update :top10 $ fn (topics) (conj topics topic)
                       swap! *resource assoc-in ([] :topics topic-id) topic
+          :examples $ []
         |load-topic! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn load-topic! (topic-id) (hint-fn async)
@@ -706,6 +757,7 @@
                         reply $ js-await
                           data-get! $ str "\"https://hacker-news.firebaseio.com/v0/item/" reply-id "\".json?print=pretty"
                       swap! *resource assoc-in ([] :replies reply-id) reply
+          :examples $ []
         |on-operation $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn on-operation (op)
@@ -715,6 +767,7 @@
                 (:load-topic d) (load-topic! d)
                 (:load-reply d) (load-reply! d)
                 _ $ do (eprintln "\"Unknown op" op)
+          :examples $ []
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns app.data-gather $ :require
@@ -724,6 +777,7 @@
         |*reel $ %{} :CodeEntry (:doc |)
           :code $ quote
             defatom *reel $ -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
+          :examples $ []
         |dispatch! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn dispatch! (op)
@@ -732,6 +786,7 @@
                 contains? (#{} :load-top10 :load-topic :load-reply) (nth op 0)
                 on-operation op
                 reset! *reel $ reel-updater updater @*reel op
+          :examples $ []
         |main! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn main! ()
@@ -754,14 +809,17 @@
                     {} $ :data ([] id)
                 dispatch! $ :: :load-top10
               println "|App started."
+          :examples $ []
         |mount-target $ %{} :CodeEntry (:doc |)
           :code $ quote
             def mount-target $ js/document.querySelector |.app
+          :examples $ []
         |persist-storage! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn persist-storage! (e)
               js/localStorage.setItem (:storage-key config/site)
                 format-cirru-edn $ :store @*reel
+          :examples $ []
         |reload! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn reload! () $ if (nil? build-errors)
@@ -770,12 +828,15 @@
                 reset! *reel $ refresh-reel @*reel schema/store updater
                 hud! "\"ok~" "\"Ok"
               hud! "\"error" build-errors
+          :examples $ []
         |render-app! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn render-app! () $ render! mount-target (comp-container @*reel @*resource) dispatch!
+          :examples $ []
         |snippets $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn snippets () $ println config/cdn?
+          :examples $ []
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns app.main $ :require
@@ -801,6 +862,7 @@
               :router $ {} (:name :home)
                 :data $ []
               :highlighted nil
+          :examples $ []
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote (ns app.schema)
     |app.updater $ %{} :FileEntry
@@ -822,6 +884,7 @@
                 (:hydrate-storage d) d
                 (:highlight d) (assoc store :highlighted d)
                 _ $ do (eprintln "\"unknown op:" op) store
+          :examples $ []
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns app.updater $ :require
