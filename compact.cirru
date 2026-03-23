@@ -40,6 +40,10 @@
                             {} (:class-name css/expand)
                               :style $ {} (:padding "\"40px 8px 160px 8px")
                             -> kids (.to-list)
+                              filter $ fn (reply-id)
+                                let
+                                    reply $ get-in resource ([] :replies reply-id)
+                                  not $ reply-hidden? reply
                               map $ fn (reply-id)
                                 [] reply-id $ let
                                     reply $ get-in resource ([] :replies reply-id)
@@ -112,8 +116,7 @@
             defcomp comp-reply (reply selected? highlighted-idx idx)
               []
                 effect-height! $ some? reply
-                if
-                  or $ nil? reply
+                if (nil? reply)
                   div
                     {} $ :class-name style-reply-empty
                     <> (str "\"Data from network")
@@ -192,33 +195,35 @@
                     {}
                       :color $ hsl 0 0 80
                       :padding 8
-                div
-                  {} $ :class-name css-reply-parent
+                if (reply-hidden? reply)
+                  span ({}) nil
                   div
-                    {} (:class-name css/row-middle)
-                      :style $ {} (:width "\"100%")
-                    comp-icon :x
-                      {} (:font-size 14)
-                        :color $ hsl 200 80 80
-                        :cursor :pointer
-                        :line-height 1
-                      fn (e d!) (on-close d!)
-                    =< 6 nil
-                    div $ {}
-                      :innerHTML $ :text reply
-                      :class-name $ str-spaced css/expand css-reply-parent-content
-                  div
-                    {} (:class-name css/row-parted)
-                      :style $ {} (:line-height "\"20px")
+                    {} $ :class-name css-reply-parent
                     div
-                      {} $ :style
-                        {} $ :color (hsl 0 0 60)
-                      <> $ str "\"@" (:by reply)
-                      =< 8 nil
-                      comp-time $ :time reply
-                      =< 8 nil
-                      <> $ str "\"Comments: "
-                        count $ :kids reply
+                      {} (:class-name css/row-middle)
+                        :style $ {} (:width "\"100%")
+                      comp-icon :x
+                        {} (:font-size 14)
+                          :color $ hsl 200 80 80
+                          :cursor :pointer
+                          :line-height 1
+                        fn (e d!) (on-close d!)
+                      =< 6 nil
+                      div $ {}
+                        :innerHTML $ :text reply
+                        :class-name $ str-spaced css/expand css-reply-parent-content
+                    div
+                      {} (:class-name css/row-parted)
+                        :style $ {} (:line-height "\"20px")
+                      div
+                        {} $ :style
+                          {} $ :color (hsl 0 0 60)
+                        <> $ str "\"@" (:by reply)
+                        =< 8 nil
+                        comp-time $ :time reply
+                        =< 8 nil
+                        <> $ str "\"Comments: "
+                          count $ :kids reply
           :examples $ []
         |comp-time $ %{} :CodeEntry (:doc |) (:schema nil)
           :code $ quote
@@ -613,6 +618,13 @@
                 set! (.-voice instance) samantha-voice
                 .!cancel js/speechSynthesis
                 .!speak js/speechSynthesis instance
+          :examples $ []
+        |reply-hidden? $ %{} :CodeEntry (:doc |) (:schema nil)
+          :code $ quote
+            defn reply-hidden? (reply)
+              let
+                  content $ either (:text reply) "\""
+                or (:dead reply) (:deleted reply) (= content "\"[dead]") (= content "\"[flagged]")
           :examples $ []
         |speech-via-api! $ %{} :CodeEntry (:doc |) (:schema nil)
           :code $ quote
