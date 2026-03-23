@@ -23,10 +23,10 @@
                   -> coord $ map-indexed
                     fn (idx parent-id)
                       [] parent-id $ let
-                          kids $ :kids
-                            if (= 0 idx)
-                              get-in resource $ [] :topics parent-id
-                              get-in resource $ [] :replies parent-id
+                          item $ if (= 0 idx)
+                            get-in resource $ [] :topics parent-id
+                            get-in resource $ [] :replies parent-id
+                          kids $ or (:kids item) ([])
                         div
                           {} $ :class-name (str-spaced css/column css-comment-list)
                           if (= 0 idx)
@@ -38,7 +38,7 @@
                                   :data $ .slice coord 0 idx
                           list->
                             {} (:class-name css/expand)
-                              :style $ {} (:padding "\"40px 4px 160px 4px")
+                              :style $ {} (:padding "\"40px 8px 160px 8px")
                             -> kids (.to-list)
                               map $ fn (reply-id)
                                 [] reply-id $ let
@@ -125,20 +125,6 @@
                     div
                       {} $ :class-name
                         str-spaced "\"reply" css-reply $ if selected? css-topic-selected
-                      div
-                        {} $ :class-name css/row-parted
-                        div
-                          {} $ :class-name (str-spaced css/row-middle css-topic-labels)
-                          <>
-                            str $ :by reply
-                            , css-replay-content
-                          =< 8 nil
-                          comp-time $ :time reply
-                        div
-                          {} $ :class-name css/row-middle
-                          a $ {} (:inner-text "\"$0") (:target "\"_blank")
-                            :href $ str "\"https://news.ycombinator.com/item?id=" (:id reply) "\"&noRedirect=true"
-                            :class-name css-external-link
                       let
                           content $ :text reply
                           paragraphs $ to-calcit-data
@@ -166,7 +152,7 @@
                               div $ {}
                                 :innerHTML $ wo-log (.!render markdown-reader block)
                                 :style $ merge
-                                  {} (:line-height "\"20px") (:font-size 14)
+                                  {} (:line-height |21px) (:font-size 13)
                                   if (= idx highlighted-idx)
                                     {} $ :background-color (hsl 80 80 90)
                                 :on-click $ fn (e d!)
@@ -174,8 +160,18 @@
                                     = "\"A" $ -> e :event .-target .-tagName
                                     do (-> e :event .!preventDefault) (-> e :event .-target .-href js/window.open)
                       div
-                        {} $ :class-name css/row-parted
-                        span ({}) nil
+                        {} $ :class-name css-reply-footer
+                        div
+                          {} $ :class-name (str-spaced css/row-middle css-reply-footer-meta)
+                          <>
+                            str |@ $ :by reply
+                            , css-replay-content
+                          =< 8 nil
+                          comp-time $ :time reply
+                          =< 8 nil
+                          a $ {} (:inner-text |#) (:target |_blank)
+                            :href $ str "\"https://news.ycombinator.com/item?id=" (:id reply) "\"&noRedirect=true"
+                            :class-name css-external-link
                         let
                             size $ count (:kids reply)
                           if (> size 0)
@@ -184,9 +180,8 @@
                                 :on-click $ fn (e d!)
                                   d! $ :: :router-after idx (:id reply)
                                   d! :load-reply $ :id reply
-                              <> (str "\"Comments: ") css-has-comment
-                              <> $ str size
-                            <> (str "\"No comments.") css-no-comment
+                              <> (str size "\" replies") css-has-comment
+                            <> "\"No replies" css-no-comment
           :examples $ []
         |comp-reply-parent $ %{} :CodeEntry (:doc |) (:schema nil)
           :code $ quote
@@ -297,7 +292,8 @@
                         :border-bottom $ str "\"1px solid " (hsl 0 0 90)
                         :justify-content :flex-end
                     a $ {} (:inner-text "\"List") (:class-name css/link)
-                      :on-click $ fn (e d!) (d! :load-top10 nil)
+                      :on-click $ fn (e d!)
+                        d! $ :: :top10
                   if no-list? $ <> (str "\"none.")
                     {}
                       :color $ hsl 0 0 80
@@ -350,7 +346,7 @@
                     =< 8 nil
                     a $ {}
                       :href $ str "\"https://news.ycombinator.com/item?id=" (:id topic) "\"&noRedirect=true"
-                      :inner-text "\"$0"
+                      :inner-text |#
                       :target "\"_blank"
                   div
                     {} $ :style
@@ -377,39 +373,54 @@
         |css-comment-list $ %{} :CodeEntry (:doc |) (:schema nil)
           :code $ quote
             defstyle css-comment-list $ {}
-              "\"$0" $ {} (:width 500) (:max-width "\"100vw") (:height "\"100%") (:overflow-y :auto) (:margin-right 8)
+              "\"$0" $ {} (:width 468) (:max-width "\"100vw") (:height "\"100%") (:overflow-y :auto) (:margin-right 0) (:padding "\"0 8px") (:box-sizing :border-box) (:scrollbar-width :thin)
+              "\"&::-webkit-scrollbar" $ {} (:width "\"6px")
+              "\"&::-webkit-scrollbar-track" $ {}
+                :background-color $ hsl 0 0 100 0
+              "\"&::-webkit-scrollbar-thumb" $ {}
+                :background-color $ hsl 0 0 78
+                :border-radius "\"999px"
+              "\"&::-webkit-scrollbar-thumb:hover" $ {}
+                :background-color $ hsl 0 0 62
           :examples $ []
         |css-external-link $ %{} :CodeEntry (:doc |) (:schema nil)
           :code $ quote
             defstyle css-external-link $ {}
-              "\"$0" $ {} (:font-family ui/font-fancy) (:font-size 12)
+              "\"$0" $ {} (:font-family ui/font-fancy) (:font-size 11) (:line-height "\"18px")
+                :color $ hsl 0 0 62
+                :text-decoration :none
+              "\"$0:hover" $ {}
+                :color $ hsl 0 0 46
+                :text-decoration :underline
           :examples $ []
         |css-has-comment $ %{} :CodeEntry (:doc |) (:schema nil)
           :code $ quote
             defstyle css-has-comment $ {}
-              "\"$0" $ {} (:font-family ui/font-fancy) (:font-size 12)
+              "\"$0" $ {} (:font-family ui/font-fancy) (:font-size 11) (:line-height "\"18px")
           :examples $ []
         |css-no-comment $ %{} :CodeEntry (:doc |) (:schema nil)
           :code $ quote
             defstyle css-no-comment $ {}
-              "\"$0" $ {} (:font-family ui/font-fancy) (:font-size 12)
+              "\"$0" $ {} (:font-family ui/font-fancy) (:font-size 11) (:line-height "\"18px")
                 :color $ hsl 0 0 80
           :examples $ []
         |css-open-replies $ %{} :CodeEntry (:doc |) (:schema nil)
           :code $ quote
             defstyle css-open-replies $ {}
               "\"$0" $ {} (:display :inline-block)
-                :background-color $ hsl 180 40 68
-                :color :white
-                :padding "\"0 12px"
-                :border-radius "\"16px"
+                :background-color $ hsl 180 26 76
+                :color $ hsl 0 0 100
+                :padding "\"0 8px"
+                :border-radius "\"10px"
                 :cursor :pointer
                 :user-select :none
+                :font-size 11
+                :line-height "\"18px"
                 :transition-duration "\"300ms"
               "\"$0:hover" $ {}
-                :box-shadow $ str "\"1px 1px 4px " (hsl 0 0 0 0.1)
-                :background-color $ hsl 200 60 74
-              "\"$0:active" $ {} (:transform "\"scale(1.04)")
+                :box-shadow $ str "\"0 1px 2px " (hsl 0 0 0 0.06)
+                :background-color $ hsl 190 28 72
+              "\"$0:active" $ {} (:transform "\"scale(1.02)")
           :examples $ []
         |css-p-content $ %{} :CodeEntry (:doc |) (:schema nil)
           :code $ quote
@@ -419,20 +430,38 @@
         |css-replay-content $ %{} :CodeEntry (:doc |) (:schema nil)
           :code $ quote
             defstyle css-replay-content $ {}
-              "\"$0" $ {} (:color :black) (:font-size 14) (:font-weight :bold) (:font-family ui/font-normal)
+              "\"$0" $ {}
+                :color $ hsl 0 0 52
+                :font-size 12
+                :font-weight 500
+                :font-family ui/font-normal
           :examples $ []
         |css-reply $ %{} :CodeEntry (:doc |) (:schema nil)
           :code $ quote
             defstyle css-reply $ {}
               "\"$0" $ merge style-reply-box
-                {} (:padding "\"8px 16px") (:border-style :solid) (:border-width "\"1px 1px 2px 1px") (:margin-bottom 16) (:border-radius "\"8px")
+                {} (:padding "\"10px 18px") (:border-style :solid) (:border-width "\"1px") (:margin-bottom 14) (:border-radius "\"6px")
                   :border-color $ hsl 0 0 88
-                  :background-color $ hsl 0 0 99
+                  :background-color $ hsl 0 0 98
                   :opacity 1
               "\"&::-webkit-scrollbar" $ {} (:width "\"0px") (:height "\"0px")
               "\"$0:hover" $ {}
-                :background-color $ hsl 0 0 100
-                :box-shadow $ str "\"0px 2px 2px " (hsl 0 0 0 0.1)
+                :background-color $ hsl 0 0 99
+                :box-shadow $ str "\"0 1px 2px " (hsl 0 0 0 0.06)
+          :examples $ []
+        |css-reply-footer $ %{} :CodeEntry (:doc |) (:schema nil)
+          :code $ quote
+            defstyle css-reply-footer $ {}
+              "\"$0" $ {} (:display :flex) (:align-items :center) (:justify-content :space-between) (:gap 8) (:margin-top 8) (:flex-wrap :wrap)
+          :examples $ []
+        |css-reply-footer-meta $ %{} :CodeEntry (:doc |) (:schema nil)
+          :code $ quote
+            defstyle css-reply-footer-meta $ {}
+              "\"$0" $ {} (:font-size 12)
+                :color $ hsl 0 0 58
+                :line-height "\"18px"
+                :flex-wrap :wrap
+                :row-gap 2
           :examples $ []
         |css-reply-parent $ %{} :CodeEntry (:doc |) (:schema nil)
           :code $ quote
@@ -505,8 +534,8 @@
             defstyle css-topic-selected $ {}
               "\"$0" $ {}
                 :border-color $ hsl 0 0 74
-                :background-color $ hsl 0 0 100
-                :box-shadow $ str "\"0px 3px 2px " (hsl 0 0 0 0.1)
+                :background-color $ hsl 0 0 99
+                :box-shadow $ str "\"0 1px 2px " (hsl 0 0 0 0.07)
           :examples $ []
         |css-topic-title $ %{} :CodeEntry (:doc |) (:schema nil)
           :code $ quote
@@ -600,7 +629,7 @@
         |style-iframe-container $ %{} :CodeEntry (:doc |) (:schema nil)
           :code $ quote
             defstyle style-iframe-container $ {}
-              "\"&" $ {} (:width "\"max(640px, 48vw)")
+              "\"&" $ {} (:width "\"max(600px, 44vw)")
                 :background-color $ hsl 0 0 100
                 :margin-right 8
                 :max-width "\"100vw"
@@ -769,7 +798,7 @@
           :code $ quote
             defn on-operation (op)
               tag-match op
-                  :load-top10
+                  :top10
                   load-top10!
                 (:load-topic d) (load-topic! d)
                 (:load-reply d) (load-reply! d)
@@ -790,7 +819,7 @@
             defn dispatch! (op)
               when config/dev? $ println "\"Dispatch:" op
               if
-                contains? (#{} :load-top10 :load-topic :load-reply) (nth op 0)
+                contains? (#{} :top10 :load-topic :load-reply) (nth op 0)
                 on-operation op
                 reset! *reel $ reel-updater updater @*reel op
           :examples $ []
@@ -814,7 +843,7 @@
                   dispatch! $ :: :load-topic id
                   dispatch! $ :: :router
                     {} $ :data ([] id)
-                dispatch! $ :: :load-top10
+                dispatch! $ :: :top10
               println "|App started."
           :examples $ []
         |mount-target $ %{} :CodeEntry (:doc |) (:schema nil)

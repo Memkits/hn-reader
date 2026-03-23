@@ -12,17 +12,22 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v6
       with:
-        node-version: 20
-        cache: 'yarn'
+        node-version: 24
+
+    - name: Enable Corepack and Yarn Berry
+      run: |
+        corepack enable
+        corepack prepare yarn@4.12.0 --activate
+        yarn --version
 
     - uses: calcit-lang/setup-cr@0.0.8
 
     - name: "compiles to js"
       run: >
-        caps --ci && cr -1 js
-        && yarn && yarn vite build --base=./
+        caps --ci && yarn install --immutable
+        && cr js && yarn vite build --base=./
 
     - name: Deploy to server
       id: deploy

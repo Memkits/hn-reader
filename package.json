@@ -13,7 +13,7 @@
   "devDependencies": {
     "bottom-tip": "^0.1.5",
     "microsoft-cognitiveservices-speech-sdk": "^1.46.0",
-    "vite": "^7.2.2"
+    "vite": "^8.0.2"
   },
   "dependencies": {
     "@calcit/procs": "0.12.11",
