@@ -7,3 +7,7 @@ node_modules/
 dist/
 
 .DS_Store
+
+.yarn/*.gz
+
+.calcit-snippets/*
