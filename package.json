@@ -16,11 +16,11 @@
     "vite": "^8.0.2"
   },
   "dependencies": {
-    "@calcit/procs": "0.14.16",
+    "@calcit/procs": "0.14.17",
     "@calcit/std": "^0.0.3",
+    "cirru-color": "^0.2.4",
+    "copy-text-to-clipboard": "^3.2.2",
     "dayjs": "^1.11.19",
-    "feather-icons": "^4.29.2",
-    "remarkable": "^2.0.1",
-    "shortid": "^2.2.17"
+    "feather-icons": "^4.29.2"
   }
 }

@@ -1,5 +1,8 @@
 name: Upload
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
@@ -24,10 +27,21 @@ jobs:
 
     - uses: calcit-lang/setup-calcit@704b3f5cd6f9ce3bd1e0c926dbdd1d181adb8180 # v1.4.0
 
-    - name: "compiles to js"
-      run: >
-        caps --ci && yarn install --immutable
-        && cr js && yarn vite build --base=./
+    - name: Install dependencies
+      run: caps --strict --ci && yarn install --immutable
+
+    - name: Verify Calcit runtime toolchain
+      run: caps verify --toolchain
+
+    - name: Validate Calcit snapshot and types
+      run: |
+        calcit calcit.cirru edit format
+        git diff --exit-code -- calcit.cirru
+        calcit calcit.cirru --check-only
+        calcit calcit.cirru analyze dynamic-methods --max 0
+
+    - name: Compile and build
+      run: calcit calcit.cirru js && yarn vite build --base=./
 
     - name: Deploy to server
       id: deploy
