@@ -581,7 +581,7 @@
               let
                   host-el $ unsafe-coerce el DomElementHost
                   height $ unsafe-coerce (js-get host-el |scrollHeight) 'Number
-                set-js-string! (element-style host-el) |maxHeight $ str (+ 16 height) |px
+                element-set-style! host-el |maxHeight $ str (+ 16 height) |px
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
             :args $ [] 'Bool
@@ -740,7 +740,7 @@
             app.config :as config
             app.schema :refer $ SpeechSynthesisHost read-field id->string set-js-string!
             js-ffi.shared :refer $ UrlHost DateHost date-snapshot date-now-snapshot
-            js-ffi.browser :refer $ DomElementHost element-query-selector element-set-attribute! element-style
+            js-ffi.browser :refer $ DomElementHost element-query-selector element-set-attribute! element-set-style! element-style
     'app.config $ %{} 'FileEntry
       :defs $ {}
         'dev? $ %{} 'CodeEntry (:doc |)
