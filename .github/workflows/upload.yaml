@@ -73,7 +73,7 @@ jobs:
 
       - name: Upload static assets to COS
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: worktools/cos-upload-action@a8222e494b880b775cb8fe1ce9cc974d3ffc84cf # v1.1.0
+        uses: worktools/cos-upload-action@17e6d213fe9f6772a6090a13c8ba044cd6cbcb09 # v1.1.1
         with:
           source-dir: dist
           bucket: ${{ secrets.COS_BUCKET }}
