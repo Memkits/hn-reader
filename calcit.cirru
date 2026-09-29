@@ -22,8 +22,8 @@
                 highlighted-id $ option:unwrap-or (first highlighted-data) nil
                 raw-highlighted-index $ last highlighted-data
                 highlighted-index $ if (option:some? raw-highlighted-index)
-                  %some $ assert-type (option:unwrap raw-highlighted-index) 'Number
-                  %none
+                  Option :some $ assert-type (option:unwrap raw-highlighted-index) 'Number
+                  Option :none
               list->
                 {} (:class-name css/row)
                   :style $ {} $ :height |100%
@@ -58,7 +58,7 @@
                               memof1-call-by k comp-reply reply (includes? coord reply-id)
                                 if
                                   = (id->string highlighted-id) (id->string reply-id)
-                                  , highlighted-index $ %none
+                                  , highlighted-index $ Option :none
                                 , idx
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
@@ -98,7 +98,7 @@
                       :inner-text |https://github.com/Memkits/hn-reader
                       :href |https://github.com/Memkits/hn-reader
                 when dev? $ comp-inspect |store store $ {} (:bottom 0)
-                when dev? $ comp-reel (>> states :reel) reel $ {}
+                when dev? $ comp-typed-reel (>> states :reel) reel $ {}
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ []
@@ -404,7 +404,7 @@
               |$0 $ {} (:width 468) (:max-width |100vw) (:height |100%) (:overflow-y :auto) (:margin-right 0) (:padding "|0 8px") (:box-sizing :border-box) (:scrollbar-width :thin)
               |&::-webkit-scrollbar $ {} $ :width |6px
               |&::-webkit-scrollbar-track $ {} $ :background-color
-                hsl 0 0 100 $ %some 0
+                hsl 0 0 100 $ Option :some 0
               |&::-webkit-scrollbar-thumb $ {}
                 :background-color $ hsl 0 0 78
                 :border-radius |999px
@@ -447,7 +447,7 @@
                 :line-height |18px
                 :transition-duration |300ms
               |$0:hover $ {}
-                :box-shadow $ str "|0 1px 2px " $ hsl 0 0 0 (%some 0.06)
+                :box-shadow $ str "|0 1px 2px " $ hsl 0 0 0 (Option :some 0.06)
                 :background-color $ hsl 190 28 72
               |$0:active $ {} $ :transform "|scale(1.02)"
           :examples $ []
@@ -476,7 +476,7 @@
               |&::-webkit-scrollbar $ {} (:width |0px) (:height |0px)
               |$0:hover $ {}
                 :background-color $ hsl 0 0 99
-                :box-shadow $ str "|0 1px 2px " $ hsl 0 0 0 (%some 0.06)
+                :box-shadow $ str "|0 1px 2px " $ hsl 0 0 0 (Option :some 0.06)
           :examples $ []
           :schema $ :: 'String
         'css-reply-footer $ %{} 'CodeEntry (:doc |)
@@ -564,7 +564,7 @@
             {} $ |$0 $ {}
               :border-color $ hsl 0 0 74
               :background-color $ hsl 0 0 99
-              :box-shadow $ str "|0 1px 2px " $ hsl 0 0 0 (%some 0.07)
+              :box-shadow $ str "|0 1px 2px " $ hsl 0 0 0 (Option :some 0.07)
           :examples $ []
           :schema $ :: 'String
         'css-topic-title $ %{} 'CodeEntry (:doc |)
@@ -695,7 +695,7 @@
           :code $ quote $ defstyle style-reply-empty
             {}
               |& $ merge style-reply-box $ {} (:padding "|8px 16px") (:border-width "|1px 1px 2px 1px")
-                :background-color $ hsl 0 0 99 $ %some 0
+                :background-color $ hsl 0 0 99 $ Option :some 0
                 :margin-bottom 0
                 :opacity 0.2
               |&::-webkit-scrollbar $ {} (:width |0px) (:height |0px)
@@ -727,7 +727,7 @@
             respo-ui.core :as ui
             respo.core :refer $ defcomp defeffect create-element >> <> div list-> button textarea span input section a
             respo.comp.space :refer $ =<
-            reel.comp.reel :refer $ comp-reel
+            reel.comp.reel :refer $ comp-typed-reel
             respo-md.comp.md :refer $ comp-md
             app.config :refer $ dev?
             respo.comp.inspect :refer $ comp-inspect
@@ -755,8 +755,8 @@
               if (option:some? configured) configured $ let
                   stored $ js/localStorage.getItem |audio-target
                 if (js-present? stored)
-                  %some $ unsafe-coerce stored 'String
-                  %none
+                  Option :some $ unsafe-coerce stored 'String
+                  Option :none
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ []
@@ -879,7 +879,7 @@
               (:top10) (load-top10!)
               (:load-topic d) (load-topic! d)
               (:load-reply d) (load-reply! d)
-              _ $ do $ eprintln "|Unknown op" op
+              _ $ eprintln "|Unknown op" op
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
             :args $ [] 'Enum
