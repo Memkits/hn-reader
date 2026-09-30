@@ -1,5 +1,8 @@
 
 .compact-inc.cirru
+.calcit/
+compact.cirru
+package.cirru
 .calcit-error.cirru
 
 js-out/

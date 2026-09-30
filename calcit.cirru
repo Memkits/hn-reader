@@ -3,7 +3,7 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |app
   :entries $ {} $ :default
-    {} (:description |) (:init-fn 'app.main/main!) (:mode :native) (:reload-fn 'app.main/reload!)
+    {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |alerts.calcit/ |respo-feather.calcit/
       :type-slots $ {}
@@ -30,30 +30,43 @@
                 -> coord $ map-indexed $ fn (idx parent-id)
                   [] parent-id $ let
                       item $ if (= 0 idx)
-                        get-in resource $ [] :topics parent-id
-                        get-in resource $ [] :replies parent-id
+                        option:unwrap-or
+                          get-in resource $ [] :topics parent-id
+                          , nil
+                        option:unwrap-or
+                          get-in resource $ [] :replies parent-id
+                          , nil
                       kids $ assert-type
                         either (read-field item :kids) ([])
                         :: 'List 'Dynamic
                     div
                       {} $ :class-name $ str-spaced css/column css-comment-list
                       if (= 0 idx)
-                        comp-topic-parent $ get-in resource $ [] :topics parent-id
+                        comp-topic-parent $ option:unwrap-or
+                          get-in resource $ [] :topics parent-id
+                          , nil
                         comp-reply-parent
-                          get-in resource $ [] :replies parent-id
+                          option:unwrap-or
+                            get-in resource $ [] :replies parent-id
+                            , nil
                           fn (d!)
-                            d! :router $ {} $ :data (slice coord 0 idx)
+                            d! $ :: :router $ {}
+                              :data $ slice coord 0 idx
                       list->
                         {} (:class-name css/expand)
                           :style $ {} $ :padding "|40px 8px 160px 8px"
                         -> kids
                           filter $ fn (reply-id)
                             let
-                                reply $ get-in resource $ [] :replies reply-id
+                                reply $ option:unwrap-or
+                                  get-in resource $ [] :replies reply-id
+                                  , nil
                               not $ reply-hidden? reply
                           map $ fn (reply-id)
                             [] reply-id $ let
-                                reply $ get-in resource $ [] :replies reply-id
+                                reply $ option:unwrap-or
+                                  get-in resource $ [] :replies reply-id
+                                  , nil
                                 k $ str parent-id |+ reply-id
                               memof1-call-by k comp-reply reply (includes? coord reply-id)
                                 if
@@ -83,7 +96,9 @@
                   :style $ {} $ :overflow-x :auto
                 comp-topic-list (>> states :topics) resource focus-id
                 let
-                    topic $ get-in resource $ [] :topics focus-id
+                    topic $ option:unwrap-or
+                      get-in resource $ [] :topics focus-id
+                      , nil
                   comp-frame topic
                 comp-comment-list router resource $ option:unwrap-or (get store :highlighted) nil
                 div $ {} $ :style
@@ -139,7 +154,7 @@
                     {} $ :font-family ui/font-fancy
                 let
                     has-kids $ >
-                      count $ read-field reply :kids
+                      count $ either (read-field reply :kids) ([])
                       , 0
                   div
                     {} $ :class-name $ str-spaced |reply css-reply (if selected? css-topic-selected)
@@ -165,9 +180,10 @@
                                     case-default (option:unwrap audio-target)
                                       do
                                         read-text! $ html->readable block
-                                        d! :highlight $ [] (read-field reply :id) idx
+                                        d! $ :: :highlight $ [] (read-field reply :id) idx
                                       |azure $ speech-via-api! (html->readable block)
-                                        fn () $ d! :highlight $ [] (read-field reply :id) idx
+                                        fn () $ d! $ :: :highlight
+                                          [] (read-field reply :id) idx
                                         fn $
                             div
                               {} $ :style $ if
@@ -191,13 +207,13 @@
                           :href $ str |https://news.ycombinator.com/item?id= (read-field reply :id) |&noRedirect=true
                           :class-name css-external-link
                       let
-                          size $ count $ read-field reply :kids
+                          size $ count $ either (read-field reply :kids) ([])
                         if (> size 0)
                           div
                             {} (:class-name css-open-replies)
                               :on-click $ fn (e d!)
                                 d! $ :: :router-after idx $ read-field reply :id
-                                d! :load-reply $ read-field reply :id
+                                d! $ :: :load-reply $ read-field reply :id
                             <> (str size "| replies") css-has-comment
                           <> "|No replies" css-no-comment
           :examples $ []
@@ -238,7 +254,8 @@
                       =< 8 nil
                       comp-time $ read-field reply :time
                       =< 8 nil
-                      <> $ str "|Comments: " $ count (read-field reply :kids)
+                      <> $ str "|Comments: " $ count
+                        either (read-field reply :kids) ([])
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] 'Dynamic $ :: 'Fn
@@ -285,7 +302,8 @@
                   a $ {} $ :inner-text
                     str |@ $ read-field topic :by
                   =< 12 nil
-                  <> $ str "|Comments: " $ count (read-field topic :kids)
+                  <> $ str "|Comments: " $ count
+                    either (read-field topic :kids) ([])
                   =< 12 nil
                   let
                       url $ read-field topic :url
@@ -340,17 +358,19 @@
                           {} $ :background-color :white
                           {}
                         fn (e d!)
-                          d! :load-topic $ read-field topic :id
-                          d! :router $ {} $ :data
-                            [] $ read-field topic :id
+                          d! $ :: :load-topic $ read-field topic :id
+                          d! $ :: :router $ {}
+                            :data $ [] $ read-field topic :id
                 div
                   {} $ :class-name css/row-parted
                   span ({}) nil
                   a $ {} (:inner-text |Load)
                     :class-name $ str-spaced css/link css/font-fancy! style-load
                     :on-click $ fn (e d!)
-                      .show load-plugin d! $ fn (text) (d! :load-topic text)
-                        d! :router $ {} $ :data ([] text)
+                      .show load-plugin d! $ fn (text)
+                        d! $ :: :load-topic text
+                        d! $ :: :router $ {}
+                          :data $ [] text
                 .render load-plugin
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
@@ -385,7 +405,8 @@
                   a $ {} $ :inner-text
                     str |@ $ read-field topic :by
                   =< 12 nil
-                  <> $ str "|Comments: " $ count (read-field topic :kids)
+                  <> $ str "|Comments: " $ count
+                    either (read-field topic :kids) ([])
                   =< 12 nil
                   let
                       url $ read-field topic :url
@@ -636,7 +657,7 @@
           :code $ quote $ defn read-text! (text)
             let
                 sentence text
-                speech $ unsafe-coerce js/speechSynthesis SpeechSynthesisHost
+                speech $ unsafe-coerce js/speechSynthesis 'app.schema/SpeechSynthesisHost
                 instance $ unsafe-coerce (new js/SpeechSynthesisUtterance sentence) 'JsObject
               println $ str sentence
               speech .cancel!
@@ -723,24 +744,24 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require
-            respo-ui.core :refer $ hsl
+            respo-ui.core :refer $ [] hsl
             respo-ui.core :as ui
-            respo.core :refer $ defcomp defeffect create-element >> <> div list-> button textarea span input section a
-            respo.comp.space :refer $ =<
-            reel.comp.reel :refer $ comp-typed-reel
-            respo-md.comp.md :refer $ comp-md
-            app.config :refer $ dev?
-            respo.comp.inspect :refer $ comp-inspect
-            respo-alerts.core :refer $ use-prompt
-            feather.core :refer $ comp-icon
-            |../entry/play-audio :refer $ synthesizeAzureSpeech
-            memof.once :refer $ memof1-call-by
-            respo.css :refer $ defstyle
+            respo.core :refer $ [] defcomp defeffect create-element >> <> div list-> button textarea span input section a
+            respo.comp.space :refer $ [] =<
+            reel.comp.reel :refer $ [] comp-typed-reel
+            respo-md.comp.md :refer $ [] comp-md
+            app.config :refer $ [] dev?
+            respo.comp.inspect :refer $ [] comp-inspect
+            respo-alerts.core :refer $ [] use-prompt
+            feather.core :refer $ [] comp-icon
+            |../entry/play-audio.js :refer $ [] synthesizeAzureSpeech
+            memof.once :refer $ [] memof1-call-by
+            respo.css :refer $ [] defstyle
             respo-ui.css :as css
             app.config :as config
-            app.schema :refer $ SpeechSynthesisHost read-field id->string set-js-string!
-            js-ffi.shared :refer $ UrlHost DateHost date-snapshot date-now-snapshot
-            js-ffi.browser :refer $ DomElementHost element-query-selector element-set-attribute! element-set-style! element-style
+            app.schema :refer $ [] SpeechSynthesisHost read-field id->string set-js-string!
+            js-ffi.shared :refer $ [] UrlHost DateHost date-snapshot date-now-snapshot
+            js-ffi.browser :refer $ [] DomElementHost element-query-selector element-set-attribute! element-set-style! element-style
     'app.config $ %{} 'FileEntry
       :defs $ {}
         'dev? $ %{} 'CodeEntry (:doc |)
@@ -913,12 +934,13 @@
             , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Dynamic
+            :args $ [] 'Enum
             :features $ #{} :js-ffi
         'get-mount-target $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn get-mount-target () (js/document.querySelector |.app)
+          :code $ quote $ defn get-mount-target ()
+            option:unwrap $ query-selector |.app
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'js-ffi.browser/DomElementHost)
             :args $ []
             :features $ #{} :js-ffi
         'main! $ %{} 'CodeEntry (:doc |)
@@ -948,7 +970,8 @@
             :features $ #{} :js-ffi
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! (e)
-            js/localStorage.setItem (:storage-key config/site)
+            storage-set!
+              option:unwrap $ get config/site :storage-key
               format-cirru-edn $ :store @*reel
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -978,18 +1001,17 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
-            respo.core :refer $ render! clear-cache! realize-ssr!
-            app.comp.container :refer $ comp-container
-            app.updater :refer $ updater
-            app.schema :as schema
-            reel.util :refer $ listen-devtools!
+            respo.core :refer $ [] render! clear-cache!
             reel.typed :as typed
-            cljs.reader :refer $ read-string
+            reel.util :refer $ [] listen-devtools!
+            app.comp.container :refer $ [] comp-container
+            app.updater :refer $ [] updater
+            app.schema :as schema
             app.config :as config
-            app.data-gather :refer $ *resource on-operation
-            clojure.string :as string
-            |./calcit.build-errors :default build-errors
+            app.data-gather :refer $ [] *resource on-operation
+            |./calcit.build-errors.mjs :default build-errors
             |bottom-tip :default hud!
+            js-ffi.browser :refer $ [] storage-set! query-selector
     'app.schema $ %{} 'FileEntry
       :defs $ {}
         'SpeechSynthesisHost $ %{} 'CodeEntry
@@ -1013,9 +1035,7 @@
             :features $ #{} :js-ffi
         'read-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-field (data field)
-            &map:get
-              unsafe-coerce data $ :: 'Map 'Tag 'Dynamic
-              , field
+            if (nil? data) nil $ option:unwrap-or (get data field) nil
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
             :args $ [] 'Dynamic 'Tag

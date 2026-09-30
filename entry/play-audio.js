@@ -1,7 +1,4 @@
-// import * as sdk from "microsoft-cognitiveservices-speech-sdk";
-import * as bundle from "microsoft-cognitiveservices-speech-sdk/distrib/lib/microsoft.cognitiveservices.speech.sdk.js";
-
-console.log("speechsdk", bundle);
+import * as SpeechSDK from "microsoft-cognitiveservices-speech-sdk";
 
 var synthesizer;
 var previousContent = "";
