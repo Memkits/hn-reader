@@ -1,15 +1,17 @@
-Developer runs `cr js` to watch build JavaScript, and `yarn vite` to start a local server. LLMs edits program by running `cr` commands, and then triggers re-compiling.
+运行 `yarn dev` 先编译一次再启动 Vite；实时编译使用独立终端执行 `yarn watch`。
+只用固定版本的 `calcit` 结构化命令修改 `calcit.cirru`，修改后重新编译。
 
 必须查看 Calcit 命令行工具的用法:
 
 ```bash
-cr docs agents --full
+calcit docs agents --contract
+calcit docs agents --full
 ```
 
 查看 Respo 模块的具体用法
 
 ```bash
-cr libs readme respo.calcit -f docs/Respo-Agent.md
+calcit docs read Respo-Agent.md --full --module respo.calcit
 ```
 
 ## LLM 执行效率优化（不重复 llms/Calcit.md）
@@ -33,6 +35,6 @@ cr libs readme respo.calcit -f docs/Respo-Agent.md
 - **pairs 列表转 map**：不要用 `.to-map` 处理 list，改用 `pairs-map`。
 - **函数调用与变量区分**：`week-start` 这类变量必须 is-leaf，避免成为单元素 list 导致被当做“函数调用”。
 - **数值与单位风险**：CSS 属性如 `flex`, `font-weight`, `line-height`, `z-index` 若使用单纯数字，Respo 会自动拼接 `px` 单位。必须改为字符串形式，例如 `:flex "\"1"` 或 `:font-weight "\"300"`。
-- **结构化编辑优先**：严禁直接编辑 `compact.cirru`，必须使用 `cr tree replace` 或 `cr edit def` 等命令。建议先通过 `cr query search 'keyword' -f 'ns/def'` 精确获得 node 路径。
+- **结构化编辑优先**：严禁文本修改 `calcit.cirru`，使用 `calcit tree` / `edit`；先用 `calcit query search 'keyword' --source project --filter 'ns/def'` 定位，并经 transaction dry-run / scoped revision 提交。不要恢复 `compact.cirru` 或 `package.cirru`。
 - **性能优化准则**：对于动态生成的列表（如任务项），应将静态样式从内联 `:style` 提取到 `defstyle` 中，通过 `:class-name` 引用以提升虚拟 DOM 性能。
 - **排序逻辑翻转**：翻转列表排序应直接修改 `sort` 函数所用比较器的返回分支（如将 `if ret 1 -1` 翻转为 `if ret -1 1`）。
