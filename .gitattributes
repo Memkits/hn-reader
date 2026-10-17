@@ -1,3 +1,3 @@
 
-calcit.cirru -diff linguist-generated
-yarn.lock -diff linguist-generated
+calcit.cirru text diff -linguist-generated
+yarn.lock text diff linguist-generated

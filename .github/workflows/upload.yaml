@@ -19,16 +19,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+      - uses: actions/setup-node@v6.5.0
         with:
           node-version: 24
           package-manager-cache: false
 
-      - uses: calcit-lang/setup-calcit@ca701be5a471759e442aa053cd100720bbe1f09f # v1.5.0
+      - uses: calcit-lang/setup-calcit@v1.5.0
         with:
           tools: calcit,caps
           caps-version: "0.1.1"
@@ -40,24 +40,21 @@ jobs:
           corepack prepare yarn@4.18.0 --activate
           yarn --version
 
-      # Current Respo modules still request preceding compatible releases, so
-      # strict Caps resolution rejects the highest SemVer set selected here.
       - name: Install and validate dependencies
         run: |
-          caps --ci
+          caps --ci --strict
           yarn install --immutable
           caps verify --toolchain
 
       - name: Validate Calcit snapshot and types
         run: |
-          calcit calcit.cirru fix --workflow strict --verify --format edn
+          test ! -e compact.cirru
+          test ! -e package.cirru
           calcit calcit.cirru edit format
           git diff --exit-code -- calcit.cirru
-          calcit calcit.cirru --check-only
-          calcit calcit.cirru analyze check-types --summary-only --format json
-          calcit calcit.cirru analyze weak-types --only schema-dynamic,code-dynamic --intent unresolved --summary-only --format json
-          calcit calcit.cirru analyze deprecated --summary-only --format json
-          calcit calcit.cirru analyze dynamic-methods --summary-only --format json | jq -e '.data.summary.findings == 0'
+          calcit calcit.cirru --check-only --all-defs
+          calcit calcit.cirru --check-only --ns app.comp.container --ns app.config --ns app.data-gather --ns app.main --ns app.schema --ns app.updater --summary-only
+          calcit calcit.cirru fix --workflow strict --verify --format edn
 
       - name: Build client with CDN asset URLs
         id: asset-path
@@ -77,6 +74,7 @@ jobs:
           echo "base-url=${VITE_BASE_URL}" >> "$GITHUB_OUTPUT"
           calcit calcit.cirru js
           yarn vite build --base="$VITE_BASE_URL"
+          yarn test
 
       - name: Upload static assets to COS
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
@@ -94,7 +92,7 @@ jobs:
       - name: Deploy to server
         id: deploy
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: Pendect/action-rsyncer@8e05ffa5c93e5d9c9b167796b26044d2c616b2b9 # v2.0.0
+        uses: Pendect/action-rsyncer@v2.0.0
         env:
           DEPLOY_KEY: ${{secrets.rsync_private_key}}
         with:

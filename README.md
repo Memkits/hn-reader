@@ -26,8 +26,42 @@ Workflow https://github.com/calcit-lang/respo-calcit-workflow
 
 前端资源由 COS action v1.2.0 上传，使用 `public-base-url` 启用内置校验，不另加验证脚本。
 PR 资源按 PR 编号、运行编号和重试次数隔离，同组部署排队执行。
-生产 CDN 前缀和原 rsync 路径不变；此次部署改进保留 Calcit/procs 0.27.0，
-不代表独立的 0.28 类型迁移候选已通过共享模块门禁。
+生产 CDN 前缀和原 rsync 路径不变，迁移只涉及前端资源。
+
+使用已发布的配对 Calcit/procs **0.30.1-alpha.4**（预发布）、Caps 0.1.1、
+Node.js 24 和 Yarn 4.18.0；模块使用正式 Respo 0.16.122、UI 0.7.41、
+Reel 0.6.39、Alerts 0.10.55、Feather 0.4.29、Markdown 0.4.56 和 js-ffi 0.2.3。
+
+```sh
+caps --ci --strict
+yarn install --immutable
+caps verify --toolchain
+calcit calcit.cirru --check-only --all-defs
+calcit calcit.cirru fix --workflow strict --verify
+yarn build
+yarn test
+```
+
+`yarn dev` 先编译一次再启动 Vite，实时编辑另开终端运行 `yarn watch`。
+源码只维护 `calcit.cirru` / `deps.cirru`，不恢复 compact.cirru/package.cirru。
+
+保留 HN 接口、话题与嵌套评论路由、HTML/Markdown 展示、`hn-reader` 存储键和语音配置键。
+网络未返回数据时显示原有 loading 占位，不把 Option 当作话题数据。
+当前加载请求、DOM effect、存储和回调在实际边界检查；typed Reel 仍使用其真实 Struct。
+评论组件缓存使用 Respo 的 `memo-comp-by`，由 `render-with!` 管理帧和失活 key 清理，
+不再依赖 Memof。原来未启用的自动持久化/恢复仍未启用。
+
+语音目标和 Azure key 按 query/env 优先、localStorage 后备读取；Azure key 缺失时明确报错，
+不把 JS null 强转成 String。常规回归只用合成记录、模拟 HTTP Response 和临时存储，
+不访问真实语音密钥或调用付费服务。
+
+### 限制
+
+0.30.1-alpha.4 不是正式 0.30.1，开放 HN 数据/状态和真实浏览器宿主仍有 Dynamic / unsafe 边界。
+
+实际 Azure/浏览器语音播放未使用真实凭据验收；外部站点仍可按其原有策略拒绝 iframe 加载。
+
+评论高度使用一个私有 scrollHeight host 合同，等待 [js-ffi #179](https://github.com/calcit-lang/js-ffi/issues/179) 提供可复用能力。
 
 ### License
 
