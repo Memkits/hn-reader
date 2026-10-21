@@ -26,6 +26,7 @@ Workflow https://github.com/calcit-lang/respo-calcit-workflow
 
 前端资源由 COS action v1.2.0 上传，使用 `public-base-url` 启用内置校验，不另加验证脚本。
 PR 资源按 PR 编号、运行编号和重试次数隔离，同组部署排队执行。
+依赖机器人或其他拿不到 COS 凭据的 PR 仍运行全部编译/类型/测试门禁，告警并跳过预览上传；生产缺少任一 COS 凭据仍立即失败，不继续 rsync。不为 PR 开放额外 secret，也不新增上传校验脚本。
 生产 CDN 前缀和原 rsync 路径不变，迁移只涉及前端资源。
 
 使用已发布的配对 Calcit/procs **0.30.1-alpha.4**（预发布）、Caps 0.1.1、
