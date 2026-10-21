@@ -76,8 +76,27 @@ jobs:
           yarn vite build --base="$VITE_BASE_URL"
           yarn test
 
-      - name: Upload static assets to COS
+      - name: Check COS credentials
+        id: cos-credentials
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          COS_BUCKET: ${{ secrets.COS_BUCKET }}
+          COS_SECRET_ID: ${{ secrets.COS_SECRET_ID }}
+          COS_SECRET_KEY: ${{ secrets.COS_SECRET_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$COS_BUCKET" && -n "$COS_SECRET_ID" && -n "$COS_SECRET_KEY" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::COS credentials unavailable for this PR; preview upload skipped, validation steps remain required."
+          else
+            echo "::error::COS_BUCKET, COS_SECRET_ID and COS_SECRET_KEY are required for production deployment."
+            exit 1
+          fi
+
+      - name: Upload static assets to COS
+        if: steps.cos-credentials.outputs.available == 'true'
         timeout-minutes: 10
         uses: worktools/cos-upload-action@v1.2.0
         with:
