@@ -29,9 +29,13 @@ PR 资源按 PR 编号、运行编号和重试次数隔离，同组部署排队�
 依赖机器人或其他拿不到 COS 凭据的 PR 仍运行全部编译/类型/测试门禁，告警并跳过预览上传；生产缺少任一 COS 凭据仍立即失败，不继续 rsync。不为 PR 开放额外 secret，也不新增上传校验脚本。
 生产 CDN 前缀和原 rsync 路径不变，迁移只涉及前端资源。
 
-使用已发布的配对 Calcit/procs **0.30.1-alpha.4**（预发布）、Caps 0.1.1、
-Node.js 24 和 Yarn 4.18.0；模块使用正式 Respo 0.16.122、UI 0.7.41、
-Reel 0.6.39、Alerts 0.10.55、Feather 0.4.29、Markdown 0.4.56 和 js-ffi 0.2.3。
+使用已发布的配对 Calcit/procs **0.31.0-alpha.2**（预发布）、Caps 0.1.1、
+Node.js 24 和 Yarn 4.18.0；模块使用 Respo 0.17.0-alpha.2、UI 0.9.0-alpha.1、
+Reel 0.7.0-alpha.1、Alerts 0.11.0-alpha.1、Feather 0.5.0-alpha.2、Markdown 0.5.0-alpha.2 和 js-ffi 0.2.5。
+Reel 跟随 Alerts 和 Feather 的要求用 0.7.0-alpha.1，以免 Caps strict 报版本冲突。
+
+界面派发走 `app.schema/Op`，并绑定为默认入口的 `:dispatch-op`；HN 数据仍是开放 payload。
+Respo 收到的是 `dispatch-op!`，它把 Op 交给原来的 `dispatch!`，加载、路由和 Reel 记录逻辑不变。
 
 ```sh
 caps --ci --strict
@@ -58,7 +62,7 @@ yarn test
 
 ### 限制
 
-0.30.1-alpha.4 不是正式 0.30.1，开放 HN 数据/状态和真实浏览器宿主仍有 Dynamic / unsafe 边界。
+0.31.0-alpha.2 是预发布版本，开放 HN 数据/状态和真实浏览器宿主仍有 Dynamic / unsafe 边界。
 
 实际 Azure/浏览器语音播放未使用真实凭据验收；外部站点仍可按其原有策略拒绝 iframe 加载。
 

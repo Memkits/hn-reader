@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |alerts.calcit/ |respo-feather.calcit/ |js-ffi/
-      :type-slots $ {}
+      :type-slots $ {} $ :dispatch-op |app.schema/Op
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
@@ -30,10 +30,10 @@
                 -> coord $ map-indexed $ fn (idx parent-id)
                   [] parent-id $ let
                       item $ if (= 0 idx)
-                        option:unwrap-or
+                        .unwrap-or
                           get-in resource $ [] :topics parent-id
                           , nil
-                        option:unwrap-or
+                        .unwrap-or
                           get-in resource $ [] :replies parent-id
                           , nil
                       kids $ decode-map-as
@@ -42,11 +42,11 @@
                     div
                       {} $ :class-name $ str-spaced css/column css-comment-list
                       if (= 0 idx)
-                        comp-topic-parent $ option:unwrap-or
+                        comp-topic-parent $ .unwrap-or
                           get-in resource $ [] :topics parent-id
                           , nil
                         comp-reply-parent
-                          option:unwrap-or
+                          .unwrap-or
                             get-in resource $ [] :replies parent-id
                             , nil
                           fn (d!)
@@ -58,20 +58,20 @@
                                   :rest 'Dynamic
                               :return 'Unit
                             d! $ :: :router $ {}
-                              :data $ slice coord 0 idx
+                              :data $ slice coord 0 $ Option :some idx
                       list->
                         {} (:class-name css/expand)
                           :style $ {} $ :padding "|40px 8px 160px 8px"
                         -> kids
                           filter $ fn (reply-id)
                             let
-                                reply $ option:unwrap-or
+                                reply $ .unwrap-or
                                   get-in resource $ [] :replies reply-id
                                   , nil
                               not $ reply-hidden? reply
                           map $ fn (reply-id)
                             [] reply-id $ let
-                                reply $ option:unwrap-or
+                                reply $ .unwrap-or
                                   get-in resource $ [] :replies reply-id
                                   , nil
                                 k $ str parent-id |+ reply-id
@@ -103,7 +103,7 @@
                   :style $ {} $ :overflow-x :auto
                 comp-topic-list (>> states :topics) resource focus-id
                 let
-                    topic $ option:unwrap-or
+                    topic $ .unwrap-or
                       get-in resource $ [] :topics focus-id
                       , nil
                   comp-frame topic
@@ -164,7 +164,7 @@
                       count $ app.schema/read-kids reply
                       , 0
                   div
-                    {} $ :class-name $ str-spaced |reply css-reply (if selected? css-topic-selected)
+                    {} $ :class-name $ str-spaced |reply css-reply (if selected? css-topic-selected |)
                     let
                         content $ read-field reply :text
                         paragraphs $ split
@@ -355,11 +355,13 @@
                   a $ {} (:inner-text |List) (:class-name css/link)
                     :on-click $ fn (e d!)
                       d! $ :: :top10
-                if no-list? $ <> (str |none.)
-                  {}
-                    :color $ hsl 0 0 80
-                    :padding 8
-                    :font-family ui/font-fancy
+                if no-list?
+                  <> (str |none.)
+                    {}
+                      :color $ hsl 0 0 80
+                      :padding 8
+                      :font-family ui/font-fancy
+                  <> |
                 list->
                   {} (:class-name css/expand)
                     :style $ {} (:padding "|0px 0 100px 0") (:overflow-x :hidden) (:text-overflow :ellipsis)
@@ -382,10 +384,19 @@
                   a $ {} (:inner-text |Load)
                     :class-name $ str-spaced css/link css/font-fancy! style-load
                     :on-click $ fn (e d!)
+                      hint-fn $ {}
+                        :args $ [] (:: 'Map 'Tag 'Dynamic)
+                          :: 'Fn $ {} (:return 'Unit)
+                            :args $ [] 'app.schema/Op
+                        :return 'Unit
                       .show load-plugin d! $ fn (text)
-                        d! $ :: :load-topic text
-                        d! $ :: :router $ {}
+                        hint-fn $ {}
+                          :args $ [] 'String
+                          :return 'Unit
+                        d! $ app.schema/Op :load-topic text
+                        d! $ app.schema/Op :router $ {}
                           :data $ [] text
+                      , &unit
                 .render load-plugin
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
@@ -956,6 +967,13 @@
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Dynamic
             :features $ #{} :js-ffi
+        'dispatch-op! $ %{} 'CodeEntry
+          :doc "|Typed Respo dispatch entry; forwards each app.schema/Op to dispatch!."
+          :code $ quote $ defn dispatch-op! (op) (dispatch! op)
+          :examples $ []
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'app.schema/Op
+            :features $ #{} :js-ffi
         'get-mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-mount-target ()
             option:unwrap $ respo.ffi.browser/query-selector |.app
@@ -1018,7 +1036,7 @@
           :code $ quote $ defn render-app! ()
             respo.core/render-with! (get-mount-target)
               fn () $ comp-container @*reel @*resource
-              , dispatch!
+              , dispatch-op!
             , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -1044,6 +1062,20 @@
             js-ffi.shared :as host
     'app.schema $ %{} 'FileEntry
       :defs $ {}
+        'Op $ %{} 'CodeEntry
+          :doc "|Dispatch operations of the reader, bound to the :dispatch-op type slot. HN payloads stay open data."
+          :code $ quote $ defenum Op
+            :states (:: 'List 'Dynamic) 'Dynamic
+            :content 'Dynamic
+            :router 'Dynamic
+            :router-after 'Dynamic 'Dynamic
+            :hydrate-storage 'Dynamic
+            :highlight 'Dynamic
+            :top10
+            :load-topic 'Dynamic
+            :load-reply 'Dynamic
+          :examples $ []
+          :schema $ :: 'EnumDef
         'ScrollHeightHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait ScrollHeightHost (:scroll-height 'Number)
           :examples $ []
@@ -1128,7 +1160,7 @@
                         option:unwrap-or (get router-data :data) ([])
                         :: 'List 'Dynamic
                     {} $ :data $ conj
-                      slice coord 0 $ inc $ decode-map-as idx 'Number
+                      slice coord 0 $ Option :some $ inc (decode-map-as idx 'Number)
                       , reply-id
               (:hydrate-storage d)
                 decode-map-as d $ :: 'Map 'Tag 'Dynamic
