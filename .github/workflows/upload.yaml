@@ -54,7 +54,8 @@ jobs:
           git diff --exit-code -- calcit.cirru
           calcit calcit.cirru --check-only --all-defs
           calcit calcit.cirru --check-only --ns app.comp.container --ns app.config --ns app.data-gather --ns app.main --ns app.schema --ns app.updater --summary-only
-          calcit calcit.cirru fix --workflow strict --verify --format edn
+          set -euo pipefail
+          calcit calcit.cirru fix --workflow strict --verify --format json | jq -e '.data.workflow.status == "passed" and .diagnostics == []'
 
       - name: Build client with CDN asset URLs
         id: asset-path

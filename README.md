@@ -53,6 +53,7 @@ yarn test
 保留 HN 接口、话题与嵌套评论路由、HTML/Markdown 展示、`hn-reader` 存储键和语音配置键。
 网络未返回数据时显示原有 loading 占位，不把 Option 当作话题数据。
 当前加载请求、DOM effect、存储和回调在实际边界检查；typed Reel 仍使用其真实 Struct。
+Option、集合长度和 Map 合并使用对应方法；原有两项业务测试与断言保留，不新增重复验证脚本。
 评论组件缓存使用 Respo 的 `memo-comp-by`，由 `render-with!` 管理帧和失活 key 清理，
 不再依赖 Memof。原来未启用的自动持久化/恢复仍未启用。
 
@@ -62,11 +63,13 @@ yarn test
 
 ### 限制
 
-0.31.0-alpha.2 是预发布版本，开放 HN 数据/状态和真实浏览器宿主仍有 Dynamic / unsafe 边界。
+0.31.0-alpha.2 是预发布版本。开放 HN 数据/状态仍有 Dynamic 边界；单参数 URL 构造和浏览器语音保留 3 处明确的宿主身份强转，
+不把尚未提供的共享类型能力伪装为已消除的边界。
 
 实际 Azure/浏览器语音播放未使用真实凭据验收；外部站点仍可按其原有策略拒绝 iframe 加载。
 
-评论高度使用一个私有 scrollHeight host 合同，等待 [js-ffi #179](https://github.com/calcit-lang/js-ffi/issues/179) 提供可复用能力。
+DOM effect 使用 js-ffi 的 `element-host` 检查宿主对象；评论高度使用其 `element-scroll-height` 检查 Number，
+保持原有 scrollHeight（非 clientHeight）加 16 的展开高度，删除已被替代的私有高度合同。
 
 ### License
 

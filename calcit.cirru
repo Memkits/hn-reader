@@ -14,15 +14,15 @@
           :code $ quote $ defcomp comp-comment-list (router resource highlighted)
             let
                 coord $ decode-map-as
-                  option:unwrap-or (get router :data) ([])
+                  .unwrap-or (get router :data) ([])
                   :: 'List 'Dynamic
                 highlighted-data $ decode-map-as
                   either highlighted $ []
                   :: 'List 'Dynamic
-                highlighted-id $ option:unwrap-or (first highlighted-data) nil
+                highlighted-id $ .unwrap-or (first highlighted-data) nil
                 raw-highlighted-index $ last highlighted-data
-                highlighted-index $ if (option:some? raw-highlighted-index)
-                  Option :some $ decode-map-as (option:unwrap raw-highlighted-index) 'Number
+                highlighted-index $ if (.some? raw-highlighted-index)
+                  Option :some $ decode-map-as (.unwrap raw-highlighted-index) 'Number
                   Option :none
               list->
                 {} (:class-name css/row)
@@ -88,15 +88,15 @@
             let
                 store $ :store reel
                 states $ decode-map-as
-                  option:unwrap-or (get store :states) ({})
+                  .unwrap-or (get store :states) ({})
                   :: 'Map 'Dynamic 'Dynamic
                 router $ decode-map-as
-                  option:unwrap-or (get store :router) ({})
+                  .unwrap-or (get store :router) ({})
                   :: 'Map 'Tag 'Dynamic
                 router-data $ decode-map-as
-                  option:unwrap-or (get router :data) ([])
+                  .unwrap-or (get router :data) ([])
                   :: 'List 'Dynamic
-                focus-id $ option:unwrap-or (first router-data) nil
+                focus-id $ .unwrap-or (first router-data) nil
               div
                 {}
                   :class-name $ str-spaced css/fullscreen css/global css/row
@@ -107,7 +107,7 @@
                       get-in resource $ [] :topics focus-id
                       , nil
                   comp-frame topic
-                comp-comment-list router resource $ option:unwrap-or (get store :highlighted) nil
+                comp-comment-list router resource $ .unwrap-or (get store :highlighted) nil
                 div $ {} $ :style
                   {} $ :width |80vw
                 div
@@ -161,7 +161,7 @@
                     {} $ :font-family ui/font-fancy
                 let
                     has-kids $ >
-                      count $ app.schema/read-kids reply
+                      .len $ app.schema/read-kids reply
                       , 0
                   div
                     {} $ :class-name $ str-spaced |reply css-reply (if selected? css-topic-selected |)
@@ -177,14 +177,14 @@
                             {}
                               :style $ {} $ :position :relative
                               :class-name style-reply-paragraph
-                            if (option:some? audio-target)
+                            if (.some? audio-target)
                               div
                                 {} $ :class-name $ str-spaced |clickable-container css-p-content
                                 comp-icon :volume-1
                                   {} (:font-size 18) (:cursor :pointer) (:line-height 1)
                                     :color $ hsl 200 80 70
                                   fn (e d!)
-                                    match (option:unwrap audio-target)
+                                    match (.unwrap audio-target)
                                       |azure $ speech-via-api! (html->readable block)
                                         fn () $ d! $ :: :highlight
                                           [] (read-field reply :id) idx
@@ -194,8 +194,8 @@
                                         d! $ :: :highlight $ [] (read-field reply :id) idx
                             div
                               {} $ :style $ if
-                                and (option:some? highlighted-idx)
-                                  = idx $ option:unwrap highlighted-idx
+                                and (.some? highlighted-idx)
+                                  = idx $ .unwrap highlighted-idx
                                 {} (:line-height |21px) (:font-size 13)
                                   :background-color $ hsl 80 80 90
                                 {} (:line-height |21px) (:font-size 13)
@@ -214,7 +214,7 @@
                           :href $ str |https://news.ycombinator.com/item?id= (read-field reply :id) |&noRedirect=true
                           :class-name css-external-link
                       let
-                          size $ count $ app.schema/read-kids reply
+                          size $ .len $ app.schema/read-kids reply
                         if (> size 0)
                           div
                             {} (:class-name css-open-replies)
@@ -269,7 +269,7 @@
                       =< 8 nil
                       comp-time $ decode-map-as (read-field reply :time) 'Number
                       =< 8 nil
-                      <> $ str "|Comments: " $ count (app.schema/read-kids reply)
+                      <> $ str "|Comments: " $ .len (app.schema/read-kids reply)
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] 'Dynamic $ :: 'Fn
@@ -318,7 +318,7 @@
                   a $ {} $ :inner-text
                     str |@ $ read-field topic :by
                   =< 12 nil
-                  <> $ str "|Comments: " $ count (app.schema/read-kids topic)
+                  <> $ str "|Comments: " $ .len (app.schema/read-kids topic)
                   =< 12 nil
                   let
                       url $ read-field topic :url
@@ -335,7 +335,7 @@
           :code $ quote $ defcomp comp-topic-list (states resource focus-id)
             let
                 topics $ decode-map-as
-                  option:unwrap-or (get resource :top10) ([])
+                  .unwrap-or (get resource :top10) ([])
                   :: 'List 'Dynamic
                 no-list? $ empty? topics
                 load-plugin $ use-prompt (>> states :load)
@@ -420,7 +420,7 @@
                     =< 8 nil
                     <>
                       decode-map-as (read-field topic :title) 'String
-                      merge ui/expand $ {} (:font-size 16) (:text-overflow :ellipsis) (:overflow :hidden) (:white-space :nowrap)
+                      .merge ui/expand $ {} (:font-size 16) (:text-overflow :ellipsis) (:overflow :hidden) (:white-space :nowrap)
                   =< 8 nil
                   a $ {}
                     :href $ str |https://news.ycombinator.com/item?id= (read-field topic :id) |&noRedirect=true
@@ -434,7 +434,7 @@
                   a $ {} $ :inner-text
                     str |@ $ read-field topic :by
                   =< 12 nil
-                  <> $ str "|Comments: " $ count (app.schema/read-kids topic)
+                  <> $ str "|Comments: " $ .len (app.schema/read-kids topic)
                   =< 12 nil
                   let
                       url $ read-field topic :url
@@ -518,7 +518,7 @@
         'css-reply $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-reply
             {}
-              |$0 $ merge style-reply-box $ {} (:padding "|10px 18px") (:border-style :solid) (:border-width |1px) (:margin-bottom 14) (:border-radius |6px)
+              |$0 $ .merge style-reply-box $ {} (:padding "|10px 18px") (:border-style :solid) (:border-width |1px) (:margin-bottom 14) (:border-radius |6px)
                 :border-color $ hsl 0 0 88
                 :background-color $ hsl 0 0 98
                 :opacity 1
@@ -628,8 +628,8 @@
                 or (= action :mount) (= action :update)
                 non-nil? el
               let
-                  host-el $ unsafe-coerce el 'js-ffi.browser/DomElementHost
-                  height $ .-scroll-height $ unsafe-coerce el 'app.schema/ScrollHeightHost
+                  host-el $ element-host el
+                  height $ element-scroll-height host-el
                 element-set-style! host-el |maxHeight $ str (+ 16 height) |px
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
@@ -638,14 +638,14 @@
         'effect-load $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect effect-load (topic) (action el at-place?)
             let
-                root $ unsafe-coerce el 'js-ffi.browser/DomElementHost
+                root $ element-host el
                 target $ element-query-selector root |#frame
               when
                 and
                   or (= action :mount) (= action :update)
-                  option:some? target
+                  .some? target
                 let
-                    frame $ option:unwrap target
+                    frame $ .unwrap target
                     url $ read-field topic :url
                   if (non-nil? url)
                     do
@@ -747,7 +747,7 @@
         'style-reply-empty $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-reply-empty
             {}
-              |& $ merge style-reply-box $ {} (:padding "|8px 16px") (:border-width "|1px 1px 2px 1px")
+              |& $ .merge style-reply-box $ {} (:padding "|8px 16px") (:border-width "|1px 1px 2px 1px")
                 :background-color $ hsl 0 0 99 $ Option :some 0
                 :margin-bottom 0
                 :opacity 0.2
@@ -791,13 +791,13 @@
             app.config :as config
             app.schema :refer $ SpeechSynthesisHost read-field id->string set-js-string!
             js-ffi.shared :refer $ UrlHost DateHost date-snapshot date-now-snapshot
-            js-ffi.browser :refer $ DomElementHost element-query-selector element-set-attribute! element-set-style! element-style
+            js-ffi.browser :refer $ DomElementHost element-query-selector element-set-attribute! element-set-style! element-style element-host element-scroll-height
             |../entry/play-audio.js :refer $ synthesizeAzureSpeech
     'app.config $ %{} 'FileEntry
       :defs $ {}
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
-            = |dev $ option:unwrap-or (get-env |mode) |release
+            = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Bool
         'get-audio-target $ %{} 'CodeEntry (:doc |)
@@ -832,7 +832,7 @@
           :code $ quote $ defn append-topic (resource topic)
             assoc resource :top10 $ conj
               decode-map-as
-                option:unwrap-or (get resource :top10) ([])
+                .unwrap-or (get resource :top10) ([])
                 :: 'List 'Dynamic
               , topic
           :examples $ []
@@ -976,7 +976,7 @@
             :features $ #{} :js-ffi
         'get-mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-mount-target ()
-            option:unwrap $ respo.ffi.browser/query-selector |.app
+            .unwrap $ respo.ffi.browser/query-selector |.app
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.dom/DomElement)
             :args $ []
@@ -1010,7 +1010,7 @@
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! (e)
             js-ffi.browser/storage-set!
-              option:unwrap $ get config/site :storage-key
+              .unwrap $ get config/site :storage-key
               format-cirru-edn $ :store @*reel
             , &unit
           :examples $ []
@@ -1076,12 +1076,6 @@
             :load-reply 'Dynamic
           :examples $ []
           :schema $ :: 'EnumDef
-        'ScrollHeightHost $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ deftrait ScrollHeightHost (:scroll-height 'Number)
-          :examples $ []
-          :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
-            :names $ {} $ :scroll-height |scrollHeight
-          :schema $ :: 'Trait
         'SpeechSynthesisHost $ %{} 'CodeEntry
           :doc "|External browser speech-synthesis capability used by the reader."
           :code $ quote $ deftrait SpeechSynthesisHost
@@ -1103,7 +1097,7 @@
             :features $ #{} :js-ffi
         'read-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-field (data field)
-            if (nil? data) nil $ option:unwrap-or
+            if (nil? data) nil $ .unwrap-or
               get
                 decode-map-as data $ :: 'Map 'Tag 'Dynamic
                 , field
@@ -1157,7 +1151,7 @@
                   let
                       router-data $ decode-map-as router $ :: 'Map 'Tag 'Dynamic
                       coord $ decode-map-as
-                        option:unwrap-or (get router-data :data) ([])
+                        .unwrap-or (get router-data :data) ([])
                         :: 'List 'Dynamic
                     {} $ :data $ conj
                       slice coord 0 $ Option :some $ inc (decode-map-as idx 'Number)
