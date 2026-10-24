@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { invoke_method } from "@calcit/procs";
 import * as c from "../js-out/calcit.core.mjs";
 import { store } from "../js-out/app.schema.mjs";
 import { updater } from "../js-out/app.updater.mjs";
@@ -10,7 +11,7 @@ import { load_topic_$x_, _$s_resource } from "../js-out/app.data-gather.mjs";
 
 const t = c.init_tags(["top10", "topics", "replies", "id", "title", "score", "by", "time", "url", "kids", "text", "router", "data", "states", "editor"]);
 const map = c._$n__$M_;
-const field = (value, key) => c.option_$o_unwrap(c.get(value, key));
+const field = (value, key) => invoke_method("unwrap", c.get(value, key));
 const op = (name, ...args) => c._$o__$o_(c.init_tags([name])[name], ...args);
 
 test("reader keeps topic, Markdown reply, route depth and whole-store UI state", () => {
