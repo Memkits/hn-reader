@@ -1,0 +1,59 @@
+name: Temporary official HN formal migration
+on:
+  push:
+    branches: [prepare/hn-reader-formal031]
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6.5.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@4.18.0 --activate
+      - uses: calcit-lang/setup-calcit@v1.5.0
+        with:
+          tools: calcit,caps
+          caps-version: "0.1.1"
+          deps-file: deps.cirru
+      - name: Install published formal graph
+        run: |
+          caps --strict --ci
+          yarn install --immutable
+          caps verify --toolchain
+      - name: Preserve original baseline and tests
+        run: |
+          calcit calcit.cirru --check-only --all-defs
+          calcit calcit.cirru js
+          yarn test
+      - name: Official reviewed atomic source migration
+        run: node apply-reviewed.mjs
+      - name: Full original gates and tests
+        run: |
+          set -euo pipefail
+          calcit calcit.cirru edit format
+          calcit calcit.cirru --check-only --all-defs
+          calcit calcit.cirru --check-only --ns app.comp.container --ns app.config --ns app.data-gather --ns app.main --ns app.schema --ns app.updater --summary-only
+          calcit calcit.cirru fix --workflow strict --verify --format json | tee acceptance/strict.json | jq -e '.data.workflow.status == "passed" and .diagnostics == []'
+          calcit calcit.cirru js
+          yarn test
+          yarn vite build --base=./
+          cp calcit.cirru acceptance/snapshot.cirru
+          cp -R dist acceptance/dist
+      - name: Keep official evidence
+        if: always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: hn-formal-migration-evidence
+          path: acceptance/
+          if-no-files-found: error
+          retention-days: 7
