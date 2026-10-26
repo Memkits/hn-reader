@@ -29,7 +29,7 @@ PR 资源按 PR 编号、运行编号和重试次数隔离，同组部署排队�
 依赖机器人或其他拿不到 COS 凭据的 PR 仍运行全部编译/类型/测试门禁，告警并跳过预览上传；生产缺少任一 COS 凭据仍立即失败，不继续 rsync。不为 PR 开放额外 secret，也不新增上传校验脚本。
 生产 CDN 前缀和原 rsync 路径不变，迁移只涉及前端资源。
 
-使用已发布的配对 Calcit/procs **0.31.0-alpha.6**（预发布）、Caps 0.1.1、
+使用已发布的配对 Calcit/procs **0.31.0-alpha.7**（预发布）、Caps 0.1.1、
 Node.js 24 和 Yarn 4.18.0；模块使用 Respo 0.17.0-alpha.2、UI 0.9.0-alpha.1、
 Reel 0.7.0-alpha.1、Alerts 0.11.0-alpha.1、Feather 0.5.0-alpha.2、Markdown 0.5.0-alpha.2 和 js-ffi 0.2.5。
 Reel 跟随 Alerts 和 Feather 的要求用 0.7.0-alpha.1，以免 Caps strict 报版本冲突。

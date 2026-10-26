@@ -1,5 +1,5 @@
 
-{} (:calcit-version |0.31.0-alpha.6)
+{} (:calcit-version |0.31.0-alpha.7)
   :version |0.2.0-alpha.1
   :dependencies $ {} (|Respo/alerts.calcit |0.11.0-alpha.1)
     |Respo/reel.calcit |0.7.0-alpha.1
