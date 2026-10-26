@@ -12,15 +12,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcit/procs@npm:0.31.0-alpha.2":
-  version: 0.31.0-alpha.2
-  resolution: "@calcit/procs@npm:0.31.0-alpha.2"
+"@calcit/procs@npm:0.31.0-alpha.6":
+  version: 0.31.0-alpha.6
+  resolution: "@calcit/procs@npm:0.31.0-alpha.6"
   dependencies:
     "@calcit/finger-vec": "npm:0.1.1"
     "@calcit/ternary-tree": "npm:0.0.26"
     "@cirru/parser.ts": "npm:0.0.10"
     "@cirru/writer.ts": "npm:^0.1.9"
-  checksum: 10c0/2b2cd01509ce5fed25b1f73205ee5b4bc347de3fb2bd82b334677efe8da2c0bdf20874b51f9e6423bf6ca4b2867e10be6a87f48c84554403ca93ff51ac6c4165
+  checksum: 10c0/a545d2ed00593dcc8a978cc8983d562aa66fac10a75d8b9a4d412479ef77818d7c3b52f5654f7a920f577726f9b344d163c035e9ecdeb3caa524ecc06b399298
   languageName: node
   linkType: hard
 
@@ -573,7 +573,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "hn-reader@workspace:."
   dependencies:
-    "@calcit/procs": "npm:0.31.0-alpha.2"
+    "@calcit/procs": "npm:0.31.0-alpha.6"
     "@calcit/std": "npm:^0.0.3"
     bottom-tip: "npm:^0.1.5"
     cirru-color: "npm:^0.2.4"
