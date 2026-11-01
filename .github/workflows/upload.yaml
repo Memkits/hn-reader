@@ -42,19 +42,20 @@ jobs:
 
       - name: Install and validate dependencies
         run: |
+          set -euo pipefail
           caps --ci --strict
           yarn install --immutable
           caps verify --toolchain
 
       - name: Validate Calcit snapshot and types
         run: |
+          set -euo pipefail
           test ! -e compact.cirru
           test ! -e package.cirru
           calcit calcit.cirru edit format
           git diff --exit-code -- calcit.cirru
           calcit calcit.cirru --check-only --all-defs
           calcit calcit.cirru --check-only --ns app.comp.container --ns app.config --ns app.data-gather --ns app.main --ns app.schema --ns app.updater --summary-only
-          set -euo pipefail
           calcit calcit.cirru fix --workflow strict --verify --format json | jq -e '.data.workflow.status == "passed" and .diagnostics == []'
 
       - name: Build client with CDN asset URLs
@@ -62,6 +63,7 @@ jobs:
         env:
           CDN_ORIGIN: https://cos-sh.tiye.me
         run: |
+          set -euo pipefail
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
             asset_prefix="${GITHUB_REPOSITORY}/pr/${{ github.event.pull_request.number }}/${GITHUB_RUN_ID}/${GITHUB_RUN_ATTEMPT}/"
           elif [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
