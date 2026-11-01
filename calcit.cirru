@@ -50,13 +50,9 @@
                             get-in resource $ [] :replies parent-id
                             , nil
                           fn (d!)
-                            hint-fn $ {}
-                              :args $ [] $ :: 'Fn
-                                {}
-                                  :args $ [] 'Dynamic
-                                  :return 'Unit
-                                  :rest 'Dynamic
-                              :return 'Unit
+                            hint-fn $ Fn
+                              Fn Dynamic & Dynamic $ -> Unit
+                              -> Unit
                             d! $ :: :router $ {}
                               :data $ slice coord 0 $ Option :some idx
                       list->
@@ -81,8 +77,7 @@
                                   , highlighted-index $ Option :none
                                 , idx
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic) 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic) Dynamic (-> respo.schema/Component)
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel resource)
             let
@@ -122,10 +117,10 @@
                 when dev? $ comp-inspect |store store $ {} (:bottom 0)
                 when dev? $ comp-typed-reel (>> states :reel) reel $ {}
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ []
-              :: 'reel.typed/State 'Enum $ :: 'Map 'Tag 'Dynamic
-              :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn
+            reel.typed/State Enum $ Map Tag Dynamic
+            Map Tag Dynamic
+            -> respo.schema/Component
         'comp-frame $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-frame (topic)
             if (non-nil? topic)
@@ -147,9 +142,7 @@
                     :innerHTML "|Not loaded."
               span ({}) nil
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> respo.schema/Component) (:features :js-ffi)
         'comp-reply $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-reply (reply selected? highlighted-idx idx)
             []
@@ -224,8 +217,7 @@
                             <> (str size "| replies") css-has-comment
                           <> "|No replies" css-no-comment
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Dynamic 'Bool (:: 'Option 'Number) 'Number
+          :schema $ quote $ Fn Dynamic Bool (Option Number) Number (-> respo.schema/Component)
         'comp-reply-parent $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-reply-parent (reply on-close)
             if (nil? reply)
@@ -247,13 +239,9 @@
                         :cursor :pointer
                         :line-height 1
                       fn (e d!)
-                        hint-fn $ {}
-                          :args $ [] (:: 'Map 'Tag 'Dynamic)
-                            :: 'Fn $ {}
-                              :args $ [] 'Dynamic
-                              :return 'Unit
-                              :rest 'Dynamic
-                          :return 'Unit
+                        hint-fn $ Fn (Map Tag Dynamic)
+                          Fn Dynamic & Dynamic $ -> Unit
+                          -> Unit
                         on-close d!
                     =< 6 nil
                     div $ {}
@@ -271,12 +259,11 @@
                       =< 8 nil
                       <> $ str "|Comments: " $ .len (app.schema/read-kids reply)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Dynamic $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] $ :: 'Fn
-                  {} (:rest 'Dynamic) (:return 'Unit)
-                    :args $ [] 'Dynamic
+          :schema $ quote $ Fn Dynamic
+            Fn
+              Fn Dynamic & Dynamic $ -> Unit
+              -> Unit
+            -> respo.schema/Component
         'comp-time $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-time (time)
             if (non-nil? time)
@@ -290,9 +277,7 @@
                   <> $ &str:replace (&str:slice iso 0 16) |T |
               <> |nil
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Number
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Number (-> respo.schema/Component) (:features :js-ffi)
         'comp-topic $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-topic (topic style on-click)
             if (nil? topic)
@@ -328,9 +313,7 @@
                       :target |_blank
                       :style $ {} (:text-overflow :ellipsis) (:overflow :hidden)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Dynamic (:: 'Map 'Tag 'Dynamic) 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (Map Tag Dynamic) Dynamic (-> respo.schema/Component) (:features :js-ffi)
         'comp-topic-list $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-topic-list (states resource focus-id)
             let
@@ -384,23 +367,18 @@
                   a $ {} (:inner-text |Load)
                     :class-name $ str-spaced css/link css/font-fancy! style-load
                     :on-click $ fn (e d!)
-                      hint-fn $ {}
-                        :args $ [] (:: 'Map 'Tag 'Dynamic)
-                          :: 'Fn $ {} (:return 'Unit)
-                            :args $ [] 'app.schema/Op
-                        :return 'Unit
+                      hint-fn $ Fn (Map Tag Dynamic)
+                        Fn app.schema/Op $ -> Unit
+                        -> Unit
                       .show load-plugin d! $ fn (text)
-                        hint-fn $ {}
-                          :args $ [] 'String
-                          :return 'Unit
+                        hint-fn $ Fn String $ -> Unit
                         d! $ app.schema/Op :load-topic text
                         d! $ app.schema/Op :router $ {}
                           :data $ [] text
                       , &unit
                 .render load-plugin
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Dynamic 'Dynamic) (:: 'Map 'Tag 'Dynamic) 'Dynamic
+          :schema $ quote $ Fn (Map Dynamic Dynamic) (Map Tag Dynamic) Dynamic (-> respo.schema/Component)
         'comp-topic-parent $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-topic-parent (topic)
             if (nil? topic)
@@ -444,9 +422,7 @@
                       :target |_blank
                       :style $ {} (:text-overflow :ellipsis) (:overflow :hidden)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> respo.schema/Component) (:features :js-ffi)
         'css-comment-list $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-comment-list
             {}
@@ -459,7 +435,7 @@
                 :border-radius |999px
               |&::-webkit-scrollbar-thumb:hover $ {} $ :background-color (hsl 0 0 62)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-external-link $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-external-link
             {}
@@ -470,18 +446,18 @@
                 :color $ hsl 0 0 46
                 :text-decoration :underline
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-has-comment $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-has-comment
             {} $ |$0 $ {} (:font-family ui/font-fancy) (:font-size 11) (:line-height |18px)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-no-comment $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-no-comment
             {} $ |$0 $ {} (:font-family ui/font-fancy) (:font-size 11) (:line-height |18px)
               :color $ hsl 0 0 80
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-open-replies $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-open-replies
             {}
@@ -500,12 +476,12 @@
                 :background-color $ hsl 190 28 72
               |$0:active $ {} $ :transform "|scale(1.02)"
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-p-content $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-p-content
             {} $ |$0 $ {} (:line-height 1) (:position :absolute) (:bottom 6) (:right -6)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-replay-content $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-replay-content
             {} $ |$0 $ {}
@@ -514,7 +490,7 @@
               :font-weight 500
               :font-family ui/font-normal
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-reply $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-reply
             {}
@@ -527,12 +503,12 @@
                 :background-color $ hsl 0 0 99
                 :box-shadow $ str "|0 1px 2px " $ hsl 0 0 0 (Option :some 0.06)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-reply-footer $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-reply-footer
             {} $ |$0 $ {} (:display :flex) (:align-items :center) (:justify-content :space-between) (:gap 8) (:margin-top 8) (:flex-wrap :wrap)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-reply-footer-meta $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-reply-footer-meta
             {} $ |$0 $ {} (:font-size 12)
@@ -541,7 +517,7 @@
               :flex-wrap :wrap
               :row-gap 2
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-reply-parent $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-reply-parent
             {} $ |$0 $ {} (:padding "|8px 16px")
@@ -551,18 +527,18 @@
               :text-overflow :ellipsis
               :background-color $ hsl 0 0 100
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-reply-parent-content $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-reply-parent-content
             {} $ |$0 $ {} (:line-height |22px) (:white-space :nowrap) (:max-height 22) (:overflow :hidden) (:text-overflow :ellipsis) (:font-size 16)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-topic $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-topic
             {} $ |$0 $ {} (:padding "|12px 16px") (:cursor :pointer)
               :border-bottom $ str "|1px solid " $ hsl 0 0 93
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-topic-desc $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-topic-desc
             {} $ |$0 $ {}
@@ -571,13 +547,13 @@
               :font-size 12
               :line-height |16px
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-topic-labels $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-topic-labels
             {} $ |$0 $ {} (:font-size 13) (:font-family ui/font-fancy)
               :color $ hsl 0 0 60
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-topic-parent $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-topic-parent
             {} $ |$0 $ {} (:padding "|8px 16px") (:cursor :pointer)
@@ -585,7 +561,7 @@
               :cursor :default
               :background-color $ hsl 0 0 100
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-topic-parent-title $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-topic-parent-title
             {} $ |$0 $ {} (:display :inline-block) (:padding "|0 6px")
@@ -596,7 +572,7 @@
               :border-radius |16px
               :font-family ui/font-fancy
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-topic-score $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-topic-score
             {} $ |$0 $ {} (:display :inline-block) (:padding "|0 6px")
@@ -607,7 +583,7 @@
               :border-radius |16px
               :font-family ui/font-fancy
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-topic-selected $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-topic-selected
             {} $ |$0 $ {}
@@ -615,12 +591,12 @@
               :background-color $ hsl 0 0 99
               :box-shadow $ str "|0 1px 2px " $ hsl 0 0 0 (Option :some 0.07)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-topic-title $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-topic-title
             {} $ |$0 $ {} (:font-size 14) (:text-overflow :ellipsis) (:overflow :hidden)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'effect-height! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect effect-height! (open?) (action el at?)
             if
@@ -632,9 +608,7 @@
                   height $ element-scroll-height host-el
                 element-set-style! host-el |maxHeight $ str (+ 16 height) |px
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
-            :args $ [] 'Bool
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Bool (-> respo.schema/Effect) (:features :js-ffi)
         'effect-load $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect effect-load (topic) (action el at-place?)
             let
@@ -653,9 +627,7 @@
                       timeout-call 30 $ fn () $ element-set-attribute! frame |src (decode-map-as url 'String)
                     element-set-attribute! frame |src $ str |data:, $ js/encodeURIComponent "|no url to display."
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> respo.schema/Effect) (:features :js-ffi)
         'get-azure-key $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-azure-key ()
             match (get-env |azure-key)
@@ -665,9 +637,7 @@
                   (:some key) key
                   (:none) (raise |Missing-Azure-speech-key)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> String) (:features :js-ffi)
         'get-url-host $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-url-host (url)
             let
@@ -676,43 +646,32 @@
                   , 'js-ffi.shared/UrlHost
               .-host host-url
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> String) (:features :js-ffi)
         'html->readable $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn html->readable (html)
             -> html (&str:replace |<p> "| ") (&str:replace |</p> "| ") (&str:replace |<li> "| ") (&str:replace |</li> "| ") (&str:replace |<br> "| ") (&str:replace |<br/> "| ")
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
+          :schema $ quote $ Fn String (-> String)
         'read-text! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-text! (text)
-            let
-                sentence text
-                speech $ unsafe-coerce js/speechSynthesis 'app.schema/SpeechSynthesisHost
-                instance $ unsafe-coerce (new js/SpeechSynthesisUtterance sentence) 'JsObject
-              println $ str sentence
-              speech .cancel!
-              speech .speak! instance
+            println $ str text
+            speech-synthesis-cancel!
+            speech-synthesis-speak! text
+            , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Unit) (:features :js-ffi)
         'reply-hidden? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reply-hidden? (reply)
             let
                 content $ either (read-field reply :text) |
               not $ not $ or (read-field reply :dead) (read-field reply :deleted) (= content |[dead]) (= content |[flagged])
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Bool)
-            :args $ [] 'Dynamic
+          :schema $ quote $ Fn Dynamic (-> Bool)
         'speech-via-api! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn speech-via-api! (text on-play on-next)
             synthesizeAzureSpeech text (get-azure-key) on-play on-next
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'String 'Dynamic 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String Dynamic Dynamic (-> Dynamic) (:features :js-ffi)
         'style-address $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-address
             {} $ |& $ {} (:padding "|0 8px") (:overflow :hidden) (:width |100%)
@@ -720,7 +679,7 @@
               :white-space :nowrap
               :border-bottom $ str "|1px solid " $ hsl 0 0 86
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'style-iframe-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-iframe-container
             {} $ |& $ {} (:width "|max(600px, 44vw)")
@@ -728,12 +687,12 @@
               :margin-right 8
               :max-width |100vw
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'style-load $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-load
             {} $ |& $ {} (:opacity 0.5) (:font-size 12)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'style-reply-box $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def style-reply-box
             {} (:padding "|8px 16px") (:border-width "|1px 1px 2px 1px") (:transition-duration |120ms)
@@ -743,7 +702,7 @@
               :overflow :auto
               :max-height 40
           :examples $ []
-          :schema $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Map Tag Dynamic
         'style-reply-empty $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-reply-empty
             {}
@@ -753,7 +712,7 @@
                 :opacity 0.2
               |&::-webkit-scrollbar $ {} (:width |0px) (:height |0px)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'style-reply-paragraph $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-reply-paragraph
             {}
@@ -772,7 +731,7 @@
                 :transition-delay |0ms
               |&:hover::before $ {} (:opacity 1) (:transition-delay |40ms)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require
@@ -789,9 +748,9 @@
             respo.css :refer $ defstyle
             respo-ui.css :as css
             app.config :as config
-            app.schema :refer $ SpeechSynthesisHost read-field id->string set-js-string!
+            app.schema :refer $ read-field id->string set-js-string!
             js-ffi.shared :refer $ UrlHost DateHost date-snapshot date-now-snapshot
-            js-ffi.browser :refer $ DomElementHost element-query-selector element-set-attribute! element-set-style! element-style element-host element-scroll-height
+            js-ffi.browser :refer $ DomElementHost element-query-selector element-set-attribute! element-set-style! element-style element-host element-scroll-height speech-synthesis-cancel! speech-synthesis-speak!
             |../entry/play-audio.js :refer $ synthesizeAzureSpeech
     'app.config $ %{} 'FileEntry
       :defs $ {}
@@ -799,22 +758,21 @@
           :code $ quote $ def dev?
             = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
-          :schema $ :: 'Bool
+          :schema $ quote Bool
         'get-audio-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-audio-target ()
             match (get-env |audio-target)
               (:some configured) (Option :some configured)
               (:none) (js-ffi.browser/storage-get |audio-target)
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ []
-            :features $ #{} :js-ffi
-            :return $ :: 'Option 'String
+          :schema $ quote $ Fn
+            -> $ Option String
+            :features :js-ffi
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
             {} (:dev-ui |http://localhost:8100/main-fonts.css) (:release-ui |http://cdn.tiye.me/favored-fonts/main-fonts.css) (:cdn-url |http://cdn.tiye.me/hn-reader/) (:title "|HN Reader") (:icon |http://cdn.tiye.me/logo/memkits.png) (:storage-key |hn-reader)
           :examples $ []
-          :schema $ :: 'Map 'Tag 'String
+          :schema $ quote $ Map Tag String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.config
           :require $ js-ffi.browser :as browser
@@ -827,7 +785,7 @@
               :topics $ {}
               :replies $ {}
           :examples $ []
-          :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Ref (Map Tag Dynamic)
         'append-topic $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn append-topic (resource topic)
             assoc resource :top10 $ conj
@@ -836,21 +794,17 @@
                 :: 'List 'Dynamic
               , topic
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Dynamic
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) Dynamic
+            -> $ Map Tag Dynamic
         'assoc-resource-in $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn assoc-resource-in (resource path value)
             decode-map-as (assoc-in resource path value) (:: 'Map 'Tag 'Dynamic)
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'Dynamic) 'Dynamic
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) (List Dynamic) Dynamic
+            -> $ Map Tag Dynamic
         'data-get! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn data-get! (url)
-            hint-fn $ {} (:async true)
-              :args $ [] 'String
-              :return 'Dynamic
+            hint-fn $ Fn String (-> Dynamic) (:async)
             match
               js-await $ fetch-response url
               (:ok response)
@@ -866,63 +820,49 @@
                   raise $ str "|HTTP status " $ response :status
               (:err error) (raise "|Network request failed")
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Dynamic) (:features :js-ffi)
         'load-reply! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn load-reply! (reply-id)
-            hint-fn $ {} $ :async true
+          :code $ quote $ defn load-reply! (reply-id) (hint-fn Async)
             let
                 reply $ js-await $ data-get! (str |https://hacker-news.firebaseio.com/v0/item/ reply-id |.json?print=pretty)
                 reply-ids $ decode-map-as
                   either (read-field reply :kids) ([])
                   :: 'List 'Dynamic
-              js-await $ promise-all reply-ids $ fn (reply-id)
-                hint-fn $ {} $ :async true
+              js-await $ promise-all reply-ids $ fn (reply-id) (hint-fn Async)
                 let
                     reply $ js-await $ data-get! (str |https://hacker-news.firebaseio.com/v0/item/ reply-id |.json?print=pretty)
                   swap! *resource assoc-resource-in ([] :replies reply-id) reply
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
         'load-top10! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn load-top10! ()
-            hint-fn $ {} $ :async true
+          :code $ quote $ defn load-top10! () (hint-fn Async)
             swap! *resource assoc :top10 $ []
             let
                 data $ decode-map-as
                   js-await $ data-get! |https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty
                   :: 'List 'Dynamic
                 top-ids $ take data 30
-              js-await $ promise-all top-ids $ fn (topic-id)
-                hint-fn $ {} $ :async true
+              js-await $ promise-all top-ids $ fn (topic-id) (hint-fn Async)
                 let
                     topic $ js-await $ data-get! (str |https://hacker-news.firebaseio.com/v0/item/ topic-id |.json?print=pretty)
                   swap! *resource append-topic topic
                   swap! *resource assoc-resource-in ([] :topics topic-id) topic
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Dynamic) (:features :js-ffi)
         'load-topic! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn load-topic! (topic-id)
-            hint-fn $ {} $ :async true
+          :code $ quote $ defn load-topic! (topic-id) (hint-fn Async)
             let
                 topic $ js-await $ data-get! (str |https://hacker-news.firebaseio.com/v0/item/ topic-id |.json?print=pretty)
                 reply-ids $ decode-map-as
                   either (read-field topic :kids) ([])
                   :: 'List 'Dynamic
               swap! *resource assoc-resource-in ([] :topics topic-id) topic
-              js-await $ promise-all reply-ids $ fn (reply-id)
-                hint-fn $ {} $ :async true
+              js-await $ promise-all reply-ids $ fn (reply-id) (hint-fn Async)
                 let
                     reply $ js-await $ data-get! (str |https://hacker-news.firebaseio.com/v0/item/ reply-id |.json?print=pretty)
                   swap! *resource assoc-resource-in ([] :replies reply-id) reply
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
         'on-operation $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-operation (op)
             match op
@@ -931,8 +871,7 @@
               (:load-reply d) (load-reply! d)
               _ $ eprintln "|Unknown op" op
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Enum
+          :schema $ quote $ Fn Enum (-> Dynamic)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.data-gather
           :require
@@ -944,7 +883,8 @@
         '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reel (typed/new-reel schema/store)
           :examples $ []
-          :schema $ :: 'Ref $ :: 'reel.typed/State 'Enum (:: 'Map 'Tag 'Dynamic)
+          :schema $ quote $ Ref
+            reel.typed/State Enum $ Map Tag Dynamic
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             if (enum? op)
@@ -958,29 +898,23 @@
                   (:load-reply _)
                     do (on-operation op) &unit
                   _ $ reset! *reel $ typed/record-op updater
-                    assert-type @*reel $ :: 'reel.typed/State 'Enum $ :: 'Map 'Tag 'Dynamic
+                    assert-type @*reel $ quote $ reel.typed/State Enum (Map Tag Dynamic)
                     , op (generate-id!) (js-ffi.shared/now-ms)
                 , &unit
               raise |Expected-Enum-operation
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> Unit) (:features :js-ffi)
         'dispatch-op! $ %{} 'CodeEntry
           :doc "|Typed Respo dispatch entry; forwards each app.schema/Op to dispatch!."
           :code $ quote $ defn dispatch-op! (op) (dispatch! op)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'app.schema/Op
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn app.schema/Op (-> Unit) (:features :js-ffi)
         'get-mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-mount-target ()
             .unwrap $ respo.ffi.browser/query-selector |.app
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.dom/DomElement)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> respo.dom/DomElement) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             if config/dev? $ load-console-formatter!
@@ -1004,9 +938,7 @@
             println "|App started."
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! (e)
             js-ffi.browser/storage-set!
@@ -1014,24 +946,20 @@
               format-cirru-edn $ :store @*reel
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> Unit) (:features :js-ffi)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
               do (remove-watch! *reel :changes) (clear-cache!)
                 add-watch! *reel :changes $ fn (reel prev) (render-app!)
                 reset! *reel $ typed/refresh updater
-                  assert-type @*reel $ :: 'reel.typed/State 'Enum $ :: 'Map 'Tag 'Dynamic
-                  assert-type schema/store $ :: 'Map 'Tag 'Dynamic
+                  assert-type @*reel $ quote $ reel.typed/State Enum (Map Tag Dynamic)
+                  assert-type schema/store $ quote $ Map Tag Dynamic
                 hud! |ok~ |Ok
               hud! |error build-errors
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             respo.core/render-with! (get-mount-target)
@@ -1039,9 +967,7 @@
               , dispatch-op!
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
@@ -1065,7 +991,9 @@
         'Op $ %{} 'CodeEntry
           :doc "|Dispatch operations of the reader, bound to the :dispatch-op type slot. HN payloads stay open data."
           :code $ quote $ defenum Op
-            :states (:: 'List 'Dynamic) 'Dynamic
+            :states
+              quote $ List Dynamic
+              , 'Dynamic
             :content 'Dynamic
             :router 'Dynamic
             :router-after 'Dynamic 'Dynamic
@@ -1075,26 +1003,12 @@
             :load-topic 'Dynamic
             :load-reply 'Dynamic
           :examples $ []
-          :schema $ :: 'EnumDef
-        'SpeechSynthesisHost $ %{} 'CodeEntry
-          :doc "|External browser speech-synthesis capability used by the reader."
-          :code $ quote $ deftrait SpeechSynthesisHost
-            .cancel! $ :: 'Fn $ {} (:return 'Unit)
-              :args $ [] 'app.schema/SpeechSynthesisHost
-            .speak! $ :: 'Fn $ {} (:return 'Unit)
-              :args $ [] 'app.schema/SpeechSynthesisHost 'JsObject
-          :examples $ [] $ quote SpeechSynthesisHost
-          :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
-            :names $ {} (:cancel! |cancel) (:speak! |speak)
-          :schema $ :: 'Trait
-          :tags $ #{} :ffi :js-host
+          :schema $ quote EnumDef
         'id->string $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn id->string (data)
             js-ffi.contract/expect-string |id->string $ js/String data
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> String) (:features :js-ffi)
         'read-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-field (data field)
             if (nil? data) nil $ .unwrap-or
@@ -1103,24 +1017,19 @@
                 , field
               , nil
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic 'Tag
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic Tag (-> Dynamic) (:features :js-ffi)
         'read-kids $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-kids (data)
             decode-map-as
               or (read-field data :kids) ([])
               :: 'List 'Number
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'Dynamic
-            :return $ :: 'List 'Number
+          :schema $ quote $ Fn Dynamic
+            -> $ List Number
         'set-js-string! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn set-js-string! (target field value) (aset target field value) &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'JsObject 'String 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn JsObject String String (-> Unit) (:features :js-ffi)
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             {}
@@ -1129,7 +1038,7 @@
                 :data $ []
               :highlighted nil
           :examples $ []
-          :schema $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Map Tag Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
           :require $ js-ffi.contract :as contract
@@ -1161,9 +1070,8 @@
               (:highlight d) (assoc store :highlighted d)
               _ $ do (eprintln "|unknown op:" op) store
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Enum 'String 'Number
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) Enum String Number
+            -> $ Map Tag Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require $ respo.cursor :refer $ update-states
