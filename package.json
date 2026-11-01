@@ -28,5 +28,6 @@
     "copy-text-to-clipboard": "^3.2.2",
     "dayjs": "^1.11.19",
     "feather-icons": "^4.29.2"
-  }
+  },
+  "type": "module"
 }

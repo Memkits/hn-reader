@@ -654,13 +654,10 @@
           :schema $ quote $ Fn String (-> String)
         'read-text! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-text! (text)
-            let
-                sentence text
-                speech $ unsafe-coerce js/speechSynthesis 'app.schema/SpeechSynthesisHost
-                instance $ unsafe-coerce (new js/SpeechSynthesisUtterance sentence) 'JsObject
-              println $ str sentence
-              speech .cancel!
-              speech .speak! instance
+            println $ str text
+            speech-synthesis-cancel!
+            speech-synthesis-speak! text
+            , &unit
           :examples $ []
           :schema $ quote $ Fn String (-> Unit) (:features :js-ffi)
         'reply-hidden? $ %{} 'CodeEntry (:doc |)
@@ -751,9 +748,9 @@
             respo.css :refer $ defstyle
             respo-ui.css :as css
             app.config :as config
-            app.schema :refer $ SpeechSynthesisHost read-field id->string set-js-string!
+            app.schema :refer $ read-field id->string set-js-string!
             js-ffi.shared :refer $ UrlHost DateHost date-snapshot date-now-snapshot
-            js-ffi.browser :refer $ DomElementHost element-query-selector element-set-attribute! element-set-style! element-style element-host element-scroll-height
+            js-ffi.browser :refer $ DomElementHost element-query-selector element-set-attribute! element-set-style! element-style element-host element-scroll-height speech-synthesis-cancel! speech-synthesis-speak!
             |../entry/play-audio.js :refer $ synthesizeAzureSpeech
     'app.config $ %{} 'FileEntry
       :defs $ {}
@@ -1007,16 +1004,6 @@
             :load-reply 'Dynamic
           :examples $ []
           :schema $ quote EnumDef
-        'SpeechSynthesisHost $ %{} 'CodeEntry
-          :doc "|External browser speech-synthesis capability used by the reader."
-          :code $ quote $ deftrait SpeechSynthesisHost
-            .cancel! $ quote $ Fn app.schema/SpeechSynthesisHost (-> Unit)
-            .speak! $ quote $ Fn app.schema/SpeechSynthesisHost JsObject (-> Unit)
-          :examples $ [] $ quote SpeechSynthesisHost
-          :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
-            :names $ {} (:cancel! |cancel) (:speak! |speak)
-          :schema $ quote Trait
-          :tags $ #{} :ffi :js-host
         'id->string $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn id->string (data)
             js-ffi.contract/expect-string |id->string $ js/String data
