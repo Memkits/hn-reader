@@ -29,14 +29,18 @@ PR 资源按 PR 编号、运行编号和重试次数隔离，同组部署排队�
 依赖机器人或其他拿不到 COS 凭据的 PR 仍运行全部编译/类型/测试门禁，告警并跳过预览上传；生产缺少任一 COS 凭据仍立即失败，不继续 rsync。不为 PR 开放额外 secret，也不新增上传校验脚本。
 生产 CDN 前缀和原 rsync 路径不变，迁移只涉及前端资源。
 
-使用已发布的配对 Calcit/procs **0.32.1**、Caps 0.1.1、Node.js 24 和 Yarn 4.18.0。
-模块使用正式 Respo 0.17.1、UI 0.9.0、Reel 0.7.0、Alerts 0.11.0、Feather 0.5.0、
-Markdown 0.5.0 和 js-ffi 0.2.9；UI 的 Router 0.9.0-alpha.4 沿用发布图。
+使用已发布的配对 Calcit/procs **0.34.2**、Caps 0.1.1、Node.js 24 和 Yarn 4.18.0。
+模块使用正式 Respo 0.19.2、UI 0.14.1、Reel 0.9.0、Alerts 0.12.0、Feather 0.6.0、
+Markdown 0.7.1 和 JS-FFI 0.2.10，传递 Router 0.11.2。
 重新安装完整图并重建，基础样式升级不承诺逐像素相同。
 
-本轮通过官方格式化迁移新类型语法；70 个原定义中，read-text! 改用共享语音入口，
-移除已无消费者的私有 SpeechSynthesisHost，其他 68 个定义的执行代码、schema 和元数据完全一致。
-原名义 Op 入口及派发适配器保持，不放宽类型或增加转接/强转。
+本轮通过官方 Snapshot 接口迁移：69 个原定义中，9 个代码体、3 处 schema 变化，其余 60 个定义完全一致。
+7 个 DOM handler 采用 RespoEvent 和具名 Op 派发，点击与关闭回调使用真实函数合同；8 个 UI 操作显式构造 Op。
+12 个横向 spacer 保留原尺寸，3 个可选子节点改用 Option，3 个空 span 删除旧 nil 子节点。
+话题标题样式按 Respo TextStyle union 受检解码，SDK 回调为 Fn<Unit>，原返回 void 的调用明确返回 Unit。
+原 Op 定义、开放 HN payload、路由、updater、loader、HUD 及存储入口保持。
+同一 0.34.2 口径下 schemaDynamic **50→44**、unresolved **57→40**、codeNil **28→13**，原 unsafe **1** 保持。
+不放宽门禁或新增校验脚本。
 新解析候选版本的 npm 包龄继续设为一小时，正常复用 yarn.lock 不重新等待，无新增豁免。
 
 界面派发走 `app.schema/Op`，并绑定为默认入口的 `:dispatch-op`；HN 数据仍是开放 payload。
@@ -75,17 +79,20 @@ Utterance 构造现在位于共享 speak 入口、在 cancel 之后；缺少宿�
 单参数 URL 构造仍保留 1 处明确身份信任，公开二参 url-create 不能等价替代；
 接口缺口已提交 [JS-FFI #199](https://github.com/calcit-lang/js-ffi/issues/199)。
 
-正式 0.32.1 的 273/273 完整定义检查（含依赖）、原六 namespace 69/69 公开检查、strict workflow
+正式 0.34.2 的 280/280 完整定义检查（含依赖）、原六 namespace 69/69 公开检查、strict workflow
 （diagnostics=[]）、原 2 项 Node 业务回归、前端构建及 Caps strict 八模块/工具链校验通过。
 共享语音入口还通过离线宿主调用对照：receiver、cancel、单次 Utterance 和完整文本均验证；
 缺少语音宿主仍抛错，没有实际播放或调用 Azure，不新增永久检查脚本。
 entry/play-audio.js 明确使用包级 ESM，移除启动时整包 SDK 的调试输出。
 原生附带测试为空，不将零测试当验收；保留原大包构建提示。
 
-实际公开 HN 列表、话题 iframe、评论和嵌套评论路由已加载；最终构建的 ?id=1 也返回话题/评论，
+此前 0.32.1 已验收实际公开 HN 列表、话题 iframe、评论和嵌套评论路由；旧构建的 ?id=1 也返回话题/评论，
 该目标站拒绝 iframe 的限制保持。本轮未调用语音、未读取真实凭据、
 未操作剪贴板或安装扩展。原自动存档功能仍未启用，不把页面刷新当作恢复存档验收。
 实际 Azure/浏览器语音播放仍未使用真实凭据验收；外部站点仍可按其原有策略拒绝 iframe 加载。
+另已复现并记录 [#65](https://github.com/Memkits/hn-reader/issues/65)：现有 Azure 配置引用未绑定的 SpeechSDK 全局。
+该 JS 入口本轮保持；阅读/路由验收和类型检查通过不代表语音初始化问题已修复。
+本轮 0.34.2 使用拦截的合成 HN 响应，实际 Chrome 验收话题列表/点击、iframe、评论与嵌套路由、关闭、Load 输入/Enter、?id=101 启动，page error 为空。未调用语音、剪贴板或真实服务。
 
 HN HTML 评论被送入 Markdown 导致实体/标签字面显示的既有问题仍由
 [#57](https://github.com/Memkits/hn-reader/issues/57) 跟踪，不将这次类型迁移或 CI 通过描述为已修复。
