@@ -15,10 +15,10 @@
             let
                 coord $ decode-map-as
                   .unwrap-or (get router :data) ([])
-                  :: 'List 'Dynamic
+                  quote $ List Dynamic
                 highlighted-data $ decode-map-as
                   either highlighted $ []
-                  :: 'List 'Dynamic
+                  quote $ List Dynamic
                 highlighted-id $ .unwrap-or (first highlighted-data) nil
                 raw-highlighted-index $ last highlighted-data
                 highlighted-index $ if (.some? raw-highlighted-index)
@@ -38,7 +38,7 @@
                           , nil
                       kids $ decode-map-as
                         either (read-field item :kids) ([])
-                        :: 'List 'Dynamic
+                        quote $ List Dynamic
                     div
                       {} $ :class-name $ str-spaced css/column css-comment-list
                       if (= 0 idx)
@@ -51,9 +51,9 @@
                             , nil
                           fn (d!)
                             hint-fn $ Fn
-                              Fn Dynamic & Dynamic $ -> Unit
+                              Fn app.schema/Op $ -> Unit
                               -> Unit
-                            d! $ :: :router $ {}
+                            d! $ app.schema/Op :router $ {}
                               :data $ slice coord 0 $ Option :some idx
                       list->
                         {} (:class-name css/expand)
@@ -84,13 +84,13 @@
                 store $ :store reel
                 states $ decode-map-as
                   .unwrap-or (get store :states) ({})
-                  :: 'Map 'Dynamic 'Dynamic
+                  quote $ Map Dynamic Dynamic
                 router $ decode-map-as
                   .unwrap-or (get store :router) ({})
-                  :: 'Map 'Tag 'Dynamic
+                  quote $ Map Tag Dynamic
                 router-data $ decode-map-as
                   .unwrap-or (get router :data) ([])
-                  :: 'List 'Dynamic
+                  quote $ List Dynamic
                 focus-id $ .unwrap-or (first router-data) nil
               div
                 {}
@@ -114,8 +114,12 @@
                       :target |_blank
                       :inner-text |https://github.com/Memkits/hn-reader
                       :href |https://github.com/Memkits/hn-reader
-                when dev? $ comp-inspect |store store $ {} (:bottom 0)
-                when dev? $ comp-typed-reel (>> states :reel) reel $ {}
+                if dev?
+                  Option :some $ comp-inspect |store store $ {} (:bottom 0)
+                  Option :none
+                if dev?
+                  Option :some $ comp-typed-reel (>> states :reel) reel $ {}
+                  Option :none
           :examples $ []
           :schema $ quote $ Fn
             reel.typed/State Enum $ Map Tag Dynamic
@@ -135,12 +139,18 @@
                       :target |_blank
                     span $ {} (:inner-text |Full) (:class-name css/link)
                       :style $ {} $ :height |16px
-                      :on-click $ fn (e d!) (js/document.body.requestFullscreen)
+                      :on-click $ fn (e d!)
+                        hint-fn $ Fn respo.schema/RespoEvent
+                          Fn app.schema/Op $ -> Unit
+                          -> Unit
+                          :features :js-ffi
+                        js/document.body.requestFullscreen
+                        , &unit
                   create-element :iframe $ {} (:class-name css/expand)
                     :style $ {} $ :border :none
                     :id |frame
                     :innerHTML "|Not loaded."
-              span ({}) nil
+              span $ {}
           :examples $ []
           :schema $ quote $ Fn Dynamic (-> respo.schema/Component) (:features :js-ffi)
         'comp-reply $ %{} 'CodeEntry (:doc |)
@@ -171,20 +181,24 @@
                               :style $ {} $ :position :relative
                               :class-name style-reply-paragraph
                             if (.some? audio-target)
-                              div
+                              Option :some $ div
                                 {} $ :class-name $ str-spaced |clickable-container css-p-content
                                 comp-icon :volume-1
                                   {} (:font-size 18) (:cursor :pointer) (:line-height 1)
                                     :color $ hsl 200 80 70
                                   fn (e d!)
+                                    hint-fn $ Fn respo.schema/RespoEvent
+                                      Fn app.schema/Op $ -> Unit
+                                      -> Unit
                                     match (.unwrap audio-target)
                                       |azure $ speech-via-api! (html->readable block)
-                                        fn () $ d! $ :: :highlight
+                                        fn () $ d! $ app.schema/Op :highlight
                                           [] (read-field reply :id) idx
                                         fn $
                                       _ $ do
                                         read-text! $ html->readable block
-                                        d! $ :: :highlight $ [] (read-field reply :id) idx
+                                        d! $ app.schema/Op :highlight $ [] (read-field reply :id) idx
+                              Option :none
                             div
                               {} $ :style $ if
                                 and (.some? highlighted-idx)
@@ -200,9 +214,9 @@
                         <>
                           str |@ $ read-field reply :by
                           , css-replay-content
-                        =< 8 nil
+                        space-x 8
                         comp-time $ decode-map-as (read-field reply :time) 'Number
-                        =< 8 nil
+                        space-x 8
                         a $ {} (:inner-text |#) (:target |_blank)
                           :href $ str |https://news.ycombinator.com/item?id= (read-field reply :id) |&noRedirect=true
                           :class-name css-external-link
@@ -212,8 +226,11 @@
                           div
                             {} (:class-name css-open-replies)
                               :on-click $ fn (e d!)
-                                d! $ :: :router-after idx $ read-field reply :id
-                                d! $ :: :load-reply $ read-field reply :id
+                                hint-fn $ Fn respo.schema/RespoEvent
+                                  Fn app.schema/Op $ -> Unit
+                                  -> Unit
+                                d! $ app.schema/Op :router-after idx $ read-field reply :id
+                                d! $ app.schema/Op :load-reply $ read-field reply :id
                             <> (str size "| replies") css-has-comment
                           <> "|No replies" css-no-comment
           :examples $ []
@@ -227,7 +244,7 @@
                     :color $ hsl 0 0 80
                     :padding 8
               if (reply-hidden? reply)
-                span ({}) nil
+                span $ {}
                 div
                   {} $ :class-name css-reply-parent
                   div
@@ -239,11 +256,11 @@
                         :cursor :pointer
                         :line-height 1
                       fn (e d!)
-                        hint-fn $ Fn (Map Tag Dynamic)
-                          Fn Dynamic & Dynamic $ -> Unit
+                        hint-fn $ Fn respo.schema/RespoEvent
+                          Fn app.schema/Op $ -> Unit
                           -> Unit
                         on-close d!
-                    =< 6 nil
+                    space-x 6
                     div $ {}
                       :innerHTML $ read-field reply :text
                       :class-name $ str-spaced css/expand css-reply-parent-content
@@ -254,14 +271,14 @@
                       {} $ :style $ {}
                         :color $ hsl 0 0 60
                       <> $ str |@ $ read-field reply :by
-                      =< 8 nil
+                      space-x 8
                       comp-time $ decode-map-as (read-field reply :time) 'Number
-                      =< 8 nil
+                      space-x 8
                       <> $ str "|Comments: " $ .len (app.schema/read-kids reply)
           :examples $ []
           :schema $ quote $ Fn Dynamic
             Fn
-              Fn Dynamic & Dynamic $ -> Unit
+              Fn app.schema/Op $ -> Unit
               -> Unit
             -> respo.schema/Component
         'comp-time $ %{} 'CodeEntry (:doc |)
@@ -296,15 +313,15 @@
                   <>
                     str $ decode-map-as (read-field topic :score) 'Number
                     , css-topic-score
-                  =< 8 nil
+                  space-x 8
                   <> $ decode-map-as (read-field topic :title) 'String
                 div
                   {} $ :class-name css-topic-desc
                   a $ {} $ :inner-text
                     str |@ $ read-field topic :by
-                  =< 12 nil
+                  space-x 12
                   <> $ str "|Comments: " $ .len (app.schema/read-kids topic)
-                  =< 12 nil
+                  space-x 12
                   let
                       url $ read-field topic :url
                     a $ {}
@@ -313,13 +330,18 @@
                       :target |_blank
                       :style $ {} (:text-overflow :ellipsis) (:overflow :hidden)
           :examples $ []
-          :schema $ quote $ Fn Dynamic (Map Tag Dynamic) Dynamic (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn Dynamic (Map Tag Dynamic)
+            Fn respo.schema/RespoEvent
+              Fn app.schema/Op $ -> Unit
+              -> Unit
+            -> respo.schema/Component
+            :features :js-ffi
         'comp-topic-list $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-topic-list (states resource focus-id)
             let
                 topics $ decode-map-as
                   .unwrap-or (get resource :top10) ([])
-                  :: 'List 'Dynamic
+                  quote $ List Dynamic
                 no-list? $ empty? topics
                 load-plugin $ use-prompt (>> states :load)
                   {} (:text "|Topic id:") (:placeholder "|use number id from hacker news url")
@@ -337,7 +359,10 @@
                       :justify-content :flex-end
                   a $ {} (:inner-text |List) (:class-name css/link)
                     :on-click $ fn (e d!)
-                      d! $ :: :top10
+                      hint-fn $ Fn respo.schema/RespoEvent
+                        Fn app.schema/Op $ -> Unit
+                        -> Unit
+                      d! $ app.schema/Op :top10
                 if no-list?
                   <> (str |none.)
                     {}
@@ -358,16 +383,19 @@
                           {} $ :background-color :white
                           {}
                         fn (e d!)
-                          d! $ :: :load-topic $ read-field topic :id
-                          d! $ :: :router $ {}
+                          hint-fn $ Fn respo.schema/RespoEvent
+                            Fn app.schema/Op $ -> Unit
+                            -> Unit
+                          d! $ app.schema/Op :load-topic $ read-field topic :id
+                          d! $ app.schema/Op :router $ {}
                             :data $ [] $ read-field topic :id
                 div
                   {} $ :class-name css/row-parted
-                  span ({}) nil
+                  span $ {}
                   a $ {} (:inner-text |Load)
                     :class-name $ str-spaced css/link css/font-fancy! style-load
                     :on-click $ fn (e d!)
-                      hint-fn $ Fn (Map Tag Dynamic)
+                      hint-fn $ Fn respo.schema/RespoEvent
                         Fn app.schema/Op $ -> Unit
                         -> Unit
                       .show load-plugin d! $ fn (text)
@@ -395,11 +423,13 @@
                     <>
                       str $ decode-map-as (read-field topic :score) 'Number
                       , css-topic-parent-title
-                    =< 8 nil
+                    space-x 8
                     <>
                       decode-map-as (read-field topic :title) 'String
-                      .merge ui/expand $ {} (:font-size 16) (:text-overflow :ellipsis) (:overflow :hidden) (:white-space :nowrap)
-                  =< 8 nil
+                      decode-map-as
+                        .merge ui/expand $ {} (:font-size 16) (:text-overflow :ellipsis) (:overflow :hidden) (:white-space :nowrap)
+                        , 'respo.schema/TextStyle
+                  space-x 8
                   a $ {}
                     :href $ str |https://news.ycombinator.com/item?id= (read-field topic :id) |&noRedirect=true
                     :inner-text |#
@@ -411,9 +441,9 @@
                     :line-height |20px
                   a $ {} $ :inner-text
                     str |@ $ read-field topic :by
-                  =< 12 nil
+                  space-x 12
                   <> $ str "|Comments: " $ .len (app.schema/read-kids topic)
-                  =< 12 nil
+                  space-x 12
                   let
                       url $ read-field topic :url
                     a $ {}
@@ -670,8 +700,13 @@
         'speech-via-api! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn speech-via-api! (text on-play on-next)
             synthesizeAzureSpeech text (get-azure-key) on-play on-next
+            , &unit
           :examples $ []
-          :schema $ quote $ Fn String Dynamic Dynamic (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn String
+            Fn $ -> Unit
+            Fn $ -> Unit
+            -> Unit
+            :features :js-ffi
         'style-address $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-address
             {} $ |& $ {} (:padding "|0 8px") (:overflow :hidden) (:width |100%)
@@ -738,7 +773,7 @@
             respo-ui.core :refer $ hsl
             respo-ui.core :as ui
             respo.core :refer $ defcomp defeffect create-element >> <> div list-> button textarea span input section a
-            respo.comp.space :refer $ =<
+            respo.comp.space :refer $ space-x
             reel.comp.reel :refer $ comp-typed-reel
             respo-md.comp.md :refer $ comp-md
             app.config :refer $ dev?
@@ -791,14 +826,15 @@
             assoc resource :top10 $ conj
               decode-map-as
                 .unwrap-or (get resource :top10) ([])
-                :: 'List 'Dynamic
+                quote $ List Dynamic
               , topic
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) Dynamic
             -> $ Map Tag Dynamic
         'assoc-resource-in $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn assoc-resource-in (resource path value)
-            decode-map-as (assoc-in resource path value) (:: 'Map 'Tag 'Dynamic)
+            decode-map-as (assoc-in resource path value)
+              quote $ Map Tag Dynamic
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) (List Dynamic) Dynamic
             -> $ Map Tag Dynamic
@@ -827,7 +863,7 @@
                 reply $ js-await $ data-get! (str |https://hacker-news.firebaseio.com/v0/item/ reply-id |.json?print=pretty)
                 reply-ids $ decode-map-as
                   either (read-field reply :kids) ([])
-                  :: 'List 'Dynamic
+                  quote $ List Dynamic
               js-await $ promise-all reply-ids $ fn (reply-id) (hint-fn Async)
                 let
                     reply $ js-await $ data-get! (str |https://hacker-news.firebaseio.com/v0/item/ reply-id |.json?print=pretty)
@@ -840,7 +876,7 @@
             let
                 data $ decode-map-as
                   js-await $ data-get! |https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty
-                  :: 'List 'Dynamic
+                  quote $ List Dynamic
                 top-ids $ take data 30
               js-await $ promise-all top-ids $ fn (topic-id) (hint-fn Async)
                 let
@@ -855,7 +891,7 @@
                 topic $ js-await $ data-get! (str |https://hacker-news.firebaseio.com/v0/item/ topic-id |.json?print=pretty)
                 reply-ids $ decode-map-as
                   either (read-field topic :kids) ([])
-                  :: 'List 'Dynamic
+                  quote $ List Dynamic
               swap! *resource assoc-resource-in ([] :topics topic-id) topic
               js-await $ promise-all reply-ids $ fn (reply-id) (hint-fn Async)
                 let
@@ -993,15 +1029,15 @@
           :code $ quote $ defenum Op
             :states
               quote $ List Dynamic
-              , 'Dynamic
-            :content 'Dynamic
-            :router 'Dynamic
-            :router-after 'Dynamic 'Dynamic
-            :hydrate-storage 'Dynamic
-            :highlight 'Dynamic
+              , Dynamic
+            :content Dynamic
+            :router Dynamic
+            :router-after Dynamic Dynamic
+            :hydrate-storage Dynamic
+            :highlight Dynamic
             :top10
-            :load-topic 'Dynamic
-            :load-reply 'Dynamic
+            :load-topic Dynamic
+            :load-reply Dynamic
           :examples $ []
           :schema $ quote EnumDef
         'id->string $ %{} 'CodeEntry (:doc |)
@@ -1013,7 +1049,7 @@
           :code $ quote $ defn read-field (data field)
             if (nil? data) nil $ .unwrap-or
               get
-                decode-map-as data $ :: 'Map 'Tag 'Dynamic
+                decode-map-as data $ quote $ Map Tag Dynamic
                 , field
               , nil
           :examples $ []
@@ -1022,7 +1058,7 @@
           :code $ quote $ defn read-kids (data)
             decode-map-as
               or (read-field data :kids) ([])
-              :: 'List 'Number
+              quote $ List Number
           :examples $ []
           :schema $ quote $ Fn Dynamic
             -> $ List Number
@@ -1050,23 +1086,23 @@
               (:states cursor s)
                 decode-map-as
                   update-states store
-                    decode-map-as cursor $ :: 'List 'Dynamic
+                    decode-map-as cursor $ quote $ List Dynamic
                     , s
-                  :: 'Map 'Tag 'Dynamic
+                  quote $ Map Tag Dynamic
               (:content c) (assoc store :content c)
               (:router d) (assoc store :router d)
               (:router-after idx reply-id)
                 update store :router $ fn (router)
                   let
-                      router-data $ decode-map-as router $ :: 'Map 'Tag 'Dynamic
+                      router-data $ decode-map-as router $ quote (Map Tag Dynamic)
                       coord $ decode-map-as
                         .unwrap-or (get router-data :data) ([])
-                        :: 'List 'Dynamic
+                        quote $ List Dynamic
                     {} $ :data $ conj
                       slice coord 0 $ Option :some $ inc (decode-map-as idx 'Number)
                       , reply-id
               (:hydrate-storage d)
-                decode-map-as d $ :: 'Map 'Tag 'Dynamic
+                decode-map-as d $ quote $ Map Tag Dynamic
               (:highlight d) (assoc store :highlighted d)
               _ $ do (eprintln "|unknown op:" op) store
           :examples $ []
