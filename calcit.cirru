@@ -15,10 +15,10 @@
             let
                 coord $ decode-map-as
                   .unwrap-or (get router :data) ([])
-                  quote $ List Dynamic
+                  List Dynamic
                 highlighted-data $ decode-map-as
                   either highlighted $ []
-                  quote $ List Dynamic
+                  List Dynamic
                 highlighted-id $ .unwrap-or (first highlighted-data) nil
                 raw-highlighted-index $ last highlighted-data
                 highlighted-index $ if (.some? raw-highlighted-index)
@@ -38,7 +38,7 @@
                           , nil
                       kids $ decode-map-as
                         either (read-field item :kids) ([])
-                        quote $ List Dynamic
+                        List Dynamic
                     div
                       {} $ :class-name $ str-spaced css/column css-comment-list
                       if (= 0 idx)
@@ -84,13 +84,13 @@
                 store $ :store reel
                 states $ decode-map-as
                   .unwrap-or (get store :states) ({})
-                  quote $ Map Dynamic Dynamic
+                  Map Dynamic Dynamic
                 router $ decode-map-as
                   .unwrap-or (get store :router) ({})
-                  quote $ Map Tag Dynamic
+                  Map Tag Dynamic
                 router-data $ decode-map-as
                   .unwrap-or (get router :data) ([])
-                  quote $ List Dynamic
+                  List Dynamic
                 focus-id $ .unwrap-or (first router-data) nil
               div
                 {}
@@ -230,7 +230,7 @@
                                   Fn app.schema/Op $ -> Unit
                                   -> Unit
                                 d! $ app.schema/Op :router-after idx $ read-field reply :id
-                                d! $ app.schema/Op :load-reply $ read-field reply :id
+                                d! $ app.schema/Op :load-reply $ decode-map-as (read-field reply :id) app.schema/ItemId
                             <> (str size "| replies") css-has-comment
                           <> "|No replies" css-no-comment
           :examples $ []
@@ -341,7 +341,7 @@
             let
                 topics $ decode-map-as
                   .unwrap-or (get resource :top10) ([])
-                  quote $ List Dynamic
+                  List Dynamic
                 no-list? $ empty? topics
                 load-plugin $ use-prompt (>> states :load)
                   {} (:text "|Topic id:") (:placeholder "|use number id from hacker news url")
@@ -386,7 +386,7 @@
                           hint-fn $ Fn respo.schema/RespoEvent
                             Fn app.schema/Op $ -> Unit
                             -> Unit
-                          d! $ app.schema/Op :load-topic $ read-field topic :id
+                          d! $ app.schema/Op :load-topic $ decode-map-as (read-field topic :id) app.schema/ItemId
                           d! $ app.schema/Op :router $ {}
                             :data $ [] $ read-field topic :id
                 div
@@ -826,15 +826,14 @@
             assoc resource :top10 $ conj
               decode-map-as
                 .unwrap-or (get resource :top10) ([])
-                quote $ List Dynamic
+                List Dynamic
               , topic
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) Dynamic
             -> $ Map Tag Dynamic
         'assoc-resource-in $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn assoc-resource-in (resource path value)
-            decode-map-as (assoc-in resource path value)
-              quote $ Map Tag Dynamic
+            decode-map-as (assoc-in resource path value) (Map Tag Dynamic)
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) (List Dynamic) Dynamic
             -> $ Map Tag Dynamic
@@ -857,30 +856,41 @@
               (:err error) (raise "|Network request failed")
           :examples $ []
           :schema $ quote $ Fn String (-> Dynamic) (:features :js-ffi)
+        'item-url $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn item-url (id)
+            str |https://hacker-news.firebaseio.com/v0/item/
+              match id
+                (Number number) (str number)
+                (String text) text
+              , |.json?print=pretty
+          :examples $ []
+          :schema $ quote $ Fn app.schema/ItemId (-> String)
         'load-reply! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-reply! (reply-id) (hint-fn Async)
             let
-                reply $ js-await $ data-get! (str |https://hacker-news.firebaseio.com/v0/item/ reply-id |.json?print=pretty)
+                reply $ js-await $ data-get! (item-url reply-id)
                 reply-ids $ decode-map-as
                   either (read-field reply :kids) ([])
-                  quote $ List Dynamic
-              js-await $ promise-all reply-ids $ fn (reply-id) (hint-fn Async)
+                  List app.schema/ItemId
+              js-await $ promise-all reply-ids $ fn (reply-id)
+                hint-fn $ Fn app.schema/ItemId (-> Dynamic) (:async)
                 let
-                    reply $ js-await $ data-get! (str |https://hacker-news.firebaseio.com/v0/item/ reply-id |.json?print=pretty)
+                    reply $ js-await $ data-get! (item-url reply-id)
                   swap! *resource assoc-resource-in ([] :replies reply-id) reply
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn app.schema/ItemId (-> Dynamic) (:features :js-ffi)
         'load-top10! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-top10! () (hint-fn Async)
             swap! *resource assoc :top10 $ []
             let
                 data $ decode-map-as
                   js-await $ data-get! |https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty
-                  quote $ List Dynamic
+                  List app.schema/ItemId
                 top-ids $ take data 30
-              js-await $ promise-all top-ids $ fn (topic-id) (hint-fn Async)
+              js-await $ promise-all top-ids $ fn (topic-id)
+                hint-fn $ Fn app.schema/ItemId (-> Dynamic) (:async)
                 let
-                    topic $ js-await $ data-get! (str |https://hacker-news.firebaseio.com/v0/item/ topic-id |.json?print=pretty)
+                    topic $ js-await $ data-get! (item-url topic-id)
                   swap! *resource append-topic topic
                   swap! *resource assoc-resource-in ([] :topics topic-id) topic
           :examples $ []
@@ -888,23 +898,26 @@
         'load-topic! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-topic! (topic-id) (hint-fn Async)
             let
-                topic $ js-await $ data-get! (str |https://hacker-news.firebaseio.com/v0/item/ topic-id |.json?print=pretty)
+                topic $ js-await $ data-get! (item-url topic-id)
                 reply-ids $ decode-map-as
                   either (read-field topic :kids) ([])
-                  quote $ List Dynamic
+                  List app.schema/ItemId
               swap! *resource assoc-resource-in ([] :topics topic-id) topic
-              js-await $ promise-all reply-ids $ fn (reply-id) (hint-fn Async)
+              js-await $ promise-all reply-ids $ fn (reply-id)
+                hint-fn $ Fn app.schema/ItemId (-> Dynamic) (:async)
                 let
-                    reply $ js-await $ data-get! (str |https://hacker-news.firebaseio.com/v0/item/ reply-id |.json?print=pretty)
+                    reply $ js-await $ data-get! (item-url reply-id)
                   swap! *resource assoc-resource-in ([] :replies reply-id) reply
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn app.schema/ItemId (-> Dynamic) (:features :js-ffi)
         'on-operation $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-operation (op)
             match op
               (:top10) (load-top10!)
-              (:load-topic d) (load-topic! d)
-              (:load-reply d) (load-reply! d)
+              (:load-topic d)
+                load-topic! $ decode-map-as d app.schema/ItemId
+              (:load-reply d)
+                load-reply! $ decode-map-as d app.schema/ItemId
               _ $ eprintln "|Unknown op" op
           :examples $ []
           :schema $ quote $ Fn Enum (-> Dynamic)
@@ -934,7 +947,7 @@
                   (:load-reply _)
                     do (on-operation op) &unit
                   _ $ reset! *reel $ typed/record-op updater
-                    assert-type @*reel $ quote $ reel.typed/State Enum (Map Tag Dynamic)
+                    assert-type @*reel $ reel.typed/State Enum $ Map Tag Dynamic
                     , op (generate-id!) (js-ffi.shared/now-ms)
                 , &unit
               raise |Expected-Enum-operation
@@ -989,8 +1002,8 @@
               do (remove-watch! *reel :changes) (clear-cache!)
                 add-watch! *reel :changes $ fn (reel prev) (render-app!)
                 reset! *reel $ typed/refresh updater
-                  assert-type @*reel $ quote $ reel.typed/State Enum (Map Tag Dynamic)
-                  assert-type schema/store $ quote $ Map Tag Dynamic
+                  assert-type @*reel $ reel.typed/State Enum $ Map Tag Dynamic
+                  assert-type schema/store $ Map Tag Dynamic
                 hud! |ok~ |Ok
               hud! |error build-errors
             , &unit
@@ -1024,20 +1037,22 @@
             js-ffi.shared :as host
     'app.schema $ %{} 'FileEntry
       :defs $ {}
+        'ItemId $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion ItemId Number String
+          :examples $ []
+          :schema $ quote UnionDef
         'Op $ %{} 'CodeEntry
           :doc "|Dispatch operations of the reader, bound to the :dispatch-op type slot. HN payloads stay open data."
           :code $ quote $ defenum Op
-            :states
-              quote $ List Dynamic
-              , Dynamic
+            :states (List Dynamic) Dynamic
             :content Dynamic
             :router Dynamic
             :router-after Dynamic Dynamic
             :hydrate-storage Dynamic
             :highlight Dynamic
             :top10
-            :load-topic Dynamic
-            :load-reply Dynamic
+            :load-topic app.schema/ItemId
+            :load-reply app.schema/ItemId
           :examples $ []
           :schema $ quote EnumDef
         'id->string $ %{} 'CodeEntry (:doc |)
@@ -1049,7 +1064,7 @@
           :code $ quote $ defn read-field (data field)
             if (nil? data) nil $ .unwrap-or
               get
-                decode-map-as data $ quote $ Map Tag Dynamic
+                decode-map-as data $ Map Tag Dynamic
                 , field
               , nil
           :examples $ []
@@ -1058,7 +1073,7 @@
           :code $ quote $ defn read-kids (data)
             decode-map-as
               or (read-field data :kids) ([])
-              quote $ List Number
+              List Number
           :examples $ []
           :schema $ quote $ Fn Dynamic
             -> $ List Number
@@ -1086,23 +1101,23 @@
               (:states cursor s)
                 decode-map-as
                   update-states store
-                    decode-map-as cursor $ quote $ List Dynamic
+                    decode-map-as cursor $ List Dynamic
                     , s
-                  quote $ Map Tag Dynamic
+                  Map Tag Dynamic
               (:content c) (assoc store :content c)
               (:router d) (assoc store :router d)
               (:router-after idx reply-id)
                 update store :router $ fn (router)
                   let
-                      router-data $ decode-map-as router $ quote (Map Tag Dynamic)
+                      router-data $ decode-map-as router $ Map Tag Dynamic
                       coord $ decode-map-as
                         .unwrap-or (get router-data :data) ([])
-                        quote $ List Dynamic
+                        List Dynamic
                     {} $ :data $ conj
                       slice coord 0 $ Option :some $ inc (decode-map-as idx 'Number)
                       , reply-id
               (:hydrate-storage d)
-                decode-map-as d $ quote $ Map Tag Dynamic
+                decode-map-as d $ Map Tag Dynamic
               (:highlight d) (assoc store :highlighted d)
               _ $ do (eprintln "|unknown op:" op) store
           :examples $ []

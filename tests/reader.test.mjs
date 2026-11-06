@@ -50,7 +50,7 @@ test("reader keeps topic, Markdown reply, route depth and whole-store UI state",
   }
 });
 
-test("actual topic loader keeps HN endpoints and stores topic plus requested replies", async () => {
+test("numeric and text topic IDs use the same HN endpoint and retain their cache keys", async () => {
   const originalFetch = globalThis.fetch;
   const before = c.deref(_$s_resource);
   const calls = [];
@@ -61,11 +61,14 @@ test("actual topic loader keeps HN endpoints and stores topic plus requested rep
       assert.equal(url, "https://hacker-news.firebaseio.com/v0/item/102.json?print=pretty");
       return new Response('{"id":102,"text":"cached reply"}');
     };
-    await load_topic_$x_(101);
+    for (const id of [101, "101"]) {
+      await load_topic_$x_(id);
+      const resource = c.deref(_$s_resource);
+      assert.equal(field(field(field(resource, t.topics), id), t.id), 101);
+    }
     const resource = c.deref(_$s_resource);
-    assert.equal(field(field(field(resource, t.topics), 101), t.id), 101);
     assert.equal(field(field(field(resource, t.replies), 102), t.id), 102);
-    assert.equal(calls.length, 2);
+    assert.equal(calls.length, 4);
   } finally {
     globalThis.fetch = originalFetch;
     c.reset_$x_(_$s_resource, before);
