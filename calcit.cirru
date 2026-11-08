@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |alerts.calcit/ |respo-feather.calcit/ |js-ffi/
-      :type-slots $ {} $ :dispatch-op |app.schema/Op
+      :type-slots $ {} $ :dispatch-op 'app.schema/Op
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
@@ -19,7 +19,7 @@
                 highlighted-data $ decode-map-as
                   either highlighted $ []
                   List Dynamic
-                highlighted-id $ .unwrap-or (first highlighted-data) nil
+                highlighted-id $ if (empty? highlighted-data) nil $ .unwrap (first highlighted-data)
                 raw-highlighted-index $ last highlighted-data
                 highlighted-index $ if (.some? raw-highlighted-index)
                   Option :some $ decode-map-as (.unwrap raw-highlighted-index) 'Number
@@ -91,7 +91,7 @@
                 router-data $ decode-map-as
                   .unwrap-or (get router :data) ([])
                   List Dynamic
-                focus-id $ .unwrap-or (first router-data) nil
+                focus-id $ if (empty? router-data) nil $ .unwrap (first router-data)
               div
                 {}
                   :class-name $ str-spaced css/fullscreen css/global css/row
@@ -102,7 +102,7 @@
                       get-in resource $ [] :topics focus-id
                       , nil
                   comp-frame topic
-                comp-comment-list router resource $ .unwrap-or (get store :highlighted) nil
+                comp-comment-list router resource $ .unwrap-or (get store :highlighted) ([])
                 div $ {} $ :style
                   {} $ :width |80vw
                 div
@@ -122,7 +122,7 @@
                   Option :none
           :examples $ []
           :schema $ quote $ Fn
-            reel.typed/State Enum $ Map Tag Dynamic
+            reel.typed/State app.schema/Op $ Map Tag Dynamic
             Map Tag Dynamic
             -> respo.schema/Component
         'comp-frame $ %{} 'CodeEntry (:doc |)
@@ -193,11 +193,19 @@
                                     match (.unwrap audio-target)
                                       |azure $ speech-via-api! (html->readable block)
                                         fn () $ d! $ app.schema/Op :highlight
-                                          [] (read-field reply :id) idx
+                                          assert-type
+                                            []
+                                              decode-map-as (read-field reply :id) app.schema/ItemId
+                                              , idx
+                                            Tuple app.schema/ItemId Number
                                         fn $
                                       _ $ do
                                         read-text! $ html->readable block
-                                        d! $ app.schema/Op :highlight $ [] (read-field reply :id) idx
+                                        d! $ app.schema/Op :highlight $ assert-type
+                                          []
+                                            decode-map-as (read-field reply :id) app.schema/ItemId
+                                            , idx
+                                          Tuple app.schema/ItemId Number
                               Option :none
                             div
                               {} $ :style $ if
@@ -229,8 +237,10 @@
                                 hint-fn $ Fn respo.schema/RespoEvent
                                   Fn app.schema/Op $ -> Unit
                                   -> Unit
-                                d! $ app.schema/Op :router-after idx $ read-field reply :id
-                                d! $ app.schema/Op :load-reply $ decode-map-as (read-field reply :id) app.schema/ItemId
+                                let
+                                    reply-id $ decode-map-as (read-field reply :id) app.schema/ItemId
+                                  d! $ app.schema/Op :router-after idx reply-id
+                                  d! $ app.schema/Op :load-reply reply-id
                             <> (str size "| replies") css-has-comment
                           <> "|No replies" css-no-comment
           :examples $ []
@@ -914,13 +924,12 @@
           :code $ quote $ defn on-operation (op)
             match op
               (:top10) (load-top10!)
-              (:load-topic d)
-                load-topic! $ decode-map-as d app.schema/ItemId
-              (:load-reply d)
-                load-reply! $ decode-map-as d app.schema/ItemId
+              (:load-topic id) (load-topic! id)
+              (:load-reply id) (load-reply! id)
               _ $ eprintln "|Unknown op" op
+            , &unit
           :examples $ []
-          :schema $ quote $ Fn Enum (-> Dynamic)
+          :schema $ quote $ Fn app.schema/Op (-> Unit)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.data-gather
           :require
@@ -933,30 +942,37 @@
           :code $ quote $ defref *reel (typed/new-reel schema/store)
           :examples $ []
           :schema $ quote $ Ref
-            reel.typed/State Enum $ Map Tag Dynamic
+            reel.typed/State app.schema/Op $ Map Tag Dynamic
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             if (enum? op)
-              do
-                when config/dev? $ println |Dispatch: op
-                match op
-                  (:top10)
-                    do (on-operation op) &unit
-                  (:load-topic _)
-                    do (on-operation op) &unit
-                  (:load-reply _)
-                    do (on-operation op) &unit
-                  _ $ reset! *reel $ typed/record-op updater
-                    assert-type @*reel $ reel.typed/State Enum $ Map Tag Dynamic
-                    , op (generate-id!) (js-ffi.shared/now-ms)
-                , &unit
+              match (typed/decode-control op)
+                (:some control)
+                  reset! *reel $ typed/apply-control updater @*reel control
+                (:none)
+                  if
+                    = (enum-definition op) (Option :some schema/Op)
+                    dispatch-op! $ decode-map-as op 'app.schema/Op
+                    match op
+                      (:states cursor data)
+                        dispatch-op! $ schema/Op :states
+                          decode-map-as cursor $ List Dynamic
+                          , data
+                      _ $ eprintln "|Unknown op" op
               raise |Expected-Enum-operation
             , &unit
           :examples $ []
           :schema $ quote $ Fn Dynamic (-> Unit) (:features :js-ffi)
         'dispatch-op! $ %{} 'CodeEntry
-          :doc "|Typed Respo dispatch entry; forwards each app.schema/Op to dispatch!."
-          :code $ quote $ defn dispatch-op! (op) (dispatch! op)
+          :doc "|Handle a named app operation. Network operations run outside Reel history."
+          :code $ quote $ defn dispatch-op! (op)
+            when config/dev? $ println |Dispatch: op
+            match op
+              (:top10) (on-operation op)
+              (:load-topic _) (on-operation op)
+              (:load-reply _) (on-operation op)
+              _ $ reset! *reel $ typed/record-op updater @*reel op (generate-id!) (js-ffi.shared/now-ms)
+            , &unit
           :examples $ []
           :schema $ quote $ Fn app.schema/Op (-> Unit) (:features :js-ffi)
         'get-mount-target $ %{} 'CodeEntry (:doc |)
@@ -977,13 +993,14 @@
               (raw (js/localStorage.getItem (:storage-key config/site)))
               when (some? raw)
                 dispatch! :hydrate-storage $ parse-cirru-edn raw
-            if-let
-              id $ get-env |id
-              do
-                dispatch! $ :: :load-topic id
-                dispatch! $ :: :router $ {}
-                  :data $ [] id
-              dispatch! $ :: :top10
+            match (get-env |id)
+              (:some id)
+                do
+                  dispatch-op! $ schema/Op :load-topic id
+                  dispatch-op! $ schema/Op :router $ {}
+                    :data $ [] id
+              (:none)
+                dispatch-op! $ schema/Op :top10
             println "|App started."
             , &unit
           :examples $ []
@@ -1002,7 +1019,7 @@
               do (remove-watch! *reel :changes) (clear-cache!)
                 add-watch! *reel :changes $ fn (reel prev) (render-app!)
                 reset! *reel $ typed/refresh updater
-                  assert-type @*reel $ reel.typed/State Enum $ Map Tag Dynamic
+                  assert-type @*reel $ reel.typed/State app.schema/Op $ Map Tag Dynamic
                   assert-type schema/store $ Map Tag Dynamic
                 hud! |ok~ |Ok
               hud! |error build-errors
@@ -1013,7 +1030,7 @@
           :code $ quote $ defn render-app! ()
             respo.core/render-with! (get-mount-target)
               fn () $ comp-container @*reel @*resource
-              , dispatch-op!
+              , dispatch!
             , &unit
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
@@ -1046,10 +1063,10 @@
           :code $ quote $ defenum Op
             :states (List Dynamic) Dynamic
             :content Dynamic
-            :router Dynamic
-            :router-after Dynamic Dynamic
-            :hydrate-storage Dynamic
-            :highlight Dynamic
+            :router $ Map Tag Dynamic
+            :router-after Number app.schema/ItemId
+            :hydrate-storage $ Map Tag Dynamic
+            :highlight $ Tuple app.schema/ItemId Number
             :top10
             :load-topic app.schema/ItemId
             :load-reply app.schema/ItemId
@@ -1062,11 +1079,11 @@
           :schema $ quote $ Fn Dynamic (-> String) (:features :js-ffi)
         'read-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-field (data field)
-            if (nil? data) nil $ .unwrap-or
-              get
-                decode-map-as data $ Map Tag Dynamic
-                , field
-              , nil
+            if (nil? data) nil $ let
+                fields $ decode-map-as data $ Map Tag Dynamic
+              if (contains? fields field)
+                .unwrap $ get fields field
+                , nil
           :examples $ []
           :schema $ quote $ Fn Dynamic Tag (-> Dynamic) (:features :js-ffi)
         'read-kids $ %{} 'CodeEntry (:doc |)
@@ -1121,7 +1138,7 @@
               (:highlight d) (assoc store :highlighted d)
               _ $ do (eprintln "|unknown op:" op) store
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Enum String Number
+          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/Op String Number
             -> $ Map Tag Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
