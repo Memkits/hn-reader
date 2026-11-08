@@ -24,14 +24,14 @@ I was trying to add a proxy server batching the data, but poor network between F
 
 Workflow https://github.com/calcit-lang/respo-calcit-workflow
 
-前端资源由 COS action v1.2.0 上传，使用 `public-base-url` 启用内置校验，不另加验证脚本。
+前端资源由 COS action v1.3.0 上传，使用 `public-base-url` 启用内置校验，不另加验证脚本。
 PR 资源按 PR 编号、运行编号和重试次数隔离，同组部署排队执行。
 依赖机器人或其他拿不到 COS 凭据的 PR 仍运行全部编译/类型/测试门禁，告警并跳过预览上传；生产缺少任一 COS 凭据仍立即失败，不继续 rsync。不为 PR 开放额外 secret，也不新增上传校验脚本。
 生产 CDN 前缀和原 rsync 路径不变，迁移只涉及前端资源。
 
-使用已发布的配对 Calcit/procs **0.35.1**、Caps 0.1.1、Node.js 24 和 Yarn 4.18.0。
-模块使用正式 Respo 0.19.4、UI 0.15.1、Reel 0.9.2、Alerts 0.13.1、Feather 0.6.2、
-Markdown 0.8.1 和 JS-FFI 0.2.13，传递 Router 0.12.1。
+使用已发布的配对 Calcit/procs **0.38.0**、Caps 0.1.1、Node.js 24 和 Yarn 4.18.0。
+模块使用正式 Respo 0.19.5、UI 0.15.2、Reel 0.10.0、Alerts 0.14.2、Feather 0.6.3、
+Markdown 0.8.2 和 JS-FFI 0.2.13，传递 Router 0.12.2。
 HN API 的数字 ID 和 Load 输入框的字符串 ID 都可以请求原有端点，并分别保留缓存键。
 请求 ID 使用 `ItemId = Number | String`，载入故事和评论前会拒绝其他类型的 ID。
 故事与评论的其他字段继续按开放 JSON 读取。
@@ -45,8 +45,8 @@ HN API 的数字 ID 和 Load 输入框的字符串 ID 都可以请求原有端�
 不放宽门禁或新增校验脚本。
 新解析候选版本的 npm 包龄继续设为一小时，正常复用 yarn.lock 不重新等待，无新增豁免。
 
-界面派发走 `app.schema/Op`，并绑定为默认入口的 `:dispatch-op`；HN 数据仍是开放 payload。
-Respo 收到的是 `dispatch-op!`，它把 Op 交给原来的 `dispatch!`，加载、路由和 Reel 记录逻辑不变。
+界面派发使用具名 `app.schema/Op`。路由追加记录 Number 索引和 ItemId，高亮记录 ItemId 与 Number 二元组。
+Reel 历史只记录业务操作，调试控制直接应用，网络读取继续在历史之外执行。框架入口校验并兼容 Alerts 的匿名状态事件。HN JSON 的其他字段保留开放输入。
 
 ```sh
 caps --ci --strict
