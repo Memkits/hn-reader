@@ -41,6 +41,9 @@ test("reader keeps topic, Markdown reply, route depth and whole-store UI state",
     const textRoute = updater(store, op("router", c._$L_("101")), "fixture", 0);
     assert.equal(field(field(textRoute, t.router), t.data).get(0), "101");
     assert.ok(make_string(comp_container(new_reel(textRoute), resource)).includes("Fixture paragraph"));
+    const highlighted = updater(textRoute, op("highlight", c._$L_("102", 0)), "fixture", 0);
+    const restored = c.parse_cirru_edn(c.format_cirru_edn(highlighted));
+    assert.match(make_string(comp_container(new_reel(restored), resource)), /background-color:hsl\(80,80%,90%\)/);
     db = updater(db, op("states", c._$L_(t.editor), "draft"), "fixture", 0);
     assert.equal(field(field(field(db, t.states), t.editor), t.data), "draft");
     db = updater(db, op("router-after", 0, 102), "fixture", 0);
