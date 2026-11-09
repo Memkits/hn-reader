@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { invoke_method } from "@calcit/procs";
 import * as c from "../js-out/calcit.core.mjs";
-import { store } from "../js-out/app.schema.mjs";
+import { Op, store } from "../js-out/app.schema.mjs";
 import { updater } from "../js-out/app.updater.mjs";
 import { new_reel } from "../js-out/reel.typed.mjs";
 import { comp_container } from "../js-out/app.comp.container.mjs";
@@ -12,7 +12,7 @@ import { load_topic_$x_, _$s_resource } from "../js-out/app.data-gather.mjs";
 const t = c.init_tags(["top10", "topics", "replies", "id", "title", "score", "by", "time", "url", "kids", "text", "router", "data", "states", "editor"]);
 const map = c._$n__$M_;
 const field = (value, key) => invoke_method("unwrap", c.get(value, key));
-const op = (name, ...args) => c._$o__$o_(c.init_tags([name])[name], ...args);
+const op = (name, ...args) => c._PCT__$o__$o_(Op, c.to_tag(name), ...args);
 
 test("reader keeps topic, Markdown reply, route depth and whole-store UI state", () => {
   const originalWindow = globalThis.window;
@@ -31,13 +31,16 @@ test("reader keeps topic, Markdown reply, route depth and whole-store UI state",
     Object.defineProperty(globalThis, "localStorage", { configurable: true, value: localStorage });
     const topic = map(t.id, 101, t.title, "Fixture topic", t.score, 42, t.by, "author", t.time, 0, t.url, "https://example.com/fixture", t.kids, c._$L_(102));
     const reply = map(t.id, 102, t.text, "Fixture paragraph", t.by, "commenter", t.time, 0, t.kids, c._$L_());
-    const resource = map(t.top10, c._$L_(topic), t.topics, map(101, topic), t.replies, map(102, reply));
-    let db = updater(store, op("router", map(t.data, c._$L_(101))), "fixture", 0);
+    const resource = map(t.top10, c._$L_(topic), t.topics, map(101, topic, "101", topic), t.replies, map(102, reply));
+    let db = updater(store, op("router", c._$L_(101)), "fixture", 0);
     const pending = map(t.top10, c._$L_(), t.topics, map(), t.replies, map());
     assert.ok(make_string(comp_container(new_reel(db), pending)).includes("loading..."));
     const html = make_string(comp_container(new_reel(db), resource));
     assert.ok(html.includes("Fixture topic") && html.includes("Fixture paragraph"));
     assert.ok(html.includes("https://example.com/fixture"));
+    const textRoute = updater(store, op("router", c._$L_("101")), "fixture", 0);
+    assert.equal(field(field(textRoute, t.router), t.data).get(0), "101");
+    assert.ok(make_string(comp_container(new_reel(textRoute), resource)).includes("Fixture paragraph"));
     db = updater(db, op("states", c._$L_(t.editor), "draft"), "fixture", 0);
     assert.equal(field(field(field(db, t.states), t.editor), t.data), "draft");
     db = updater(db, op("router-after", 0, 102), "fixture", 0);

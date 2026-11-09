@@ -15,7 +15,7 @@
             let
                 coord $ decode-map-as
                   .unwrap-or (get router :data) ([])
-                  List Dynamic
+                  List app.schema/ItemId
                 highlighted-data $ decode-map-as
                   either highlighted $ []
                   List Dynamic
@@ -36,6 +36,9 @@
                         .unwrap-or
                           get-in resource $ [] :replies parent-id
                           , nil
+                      parent-label $ match parent-id
+                        (Number id) (str id)
+                        (String id) id
                       kids $ decode-map-as
                         either (read-field item :kids) ([])
                         List Dynamic
@@ -53,8 +56,7 @@
                             hint-fn $ Fn
                               Fn app.schema/Op $ -> Unit
                               -> Unit
-                            d! $ app.schema/Op :router $ {}
-                              :data $ slice coord 0 $ Option :some idx
+                            d! $ app.schema/Op :router $ slice coord 0 (Option :some idx)
                       list->
                         {} (:class-name css/expand)
                           :style $ {} $ :padding "|40px 8px 160px 8px"
@@ -70,7 +72,7 @@
                                 reply $ .unwrap-or
                                   get-in resource $ [] :replies reply-id
                                   , nil
-                                k $ str parent-id |+ reply-id
+                                k $ str parent-label |+ reply-id
                               respo.core/memo-comp-by k comp-reply reply (includes? coord reply-id)
                                 if
                                   = (id->string highlighted-id) (id->string reply-id)
@@ -396,9 +398,10 @@
                           hint-fn $ Fn respo.schema/RespoEvent
                             Fn app.schema/Op $ -> Unit
                             -> Unit
-                          d! $ app.schema/Op :load-topic $ decode-map-as (read-field topic :id) app.schema/ItemId
-                          d! $ app.schema/Op :router $ {}
-                            :data $ [] $ read-field topic :id
+                          let
+                              id $ decode-map-as (read-field topic :id) app.schema/ItemId
+                            d! $ app.schema/Op :load-topic id
+                            d! $ app.schema/Op :router $ [] id
                 div
                   {} $ :class-name css/row-parted
                   span $ {}
@@ -411,8 +414,7 @@
                       .show load-plugin d! $ fn (text)
                         hint-fn $ Fn String $ -> Unit
                         d! $ app.schema/Op :load-topic text
-                        d! $ app.schema/Op :router $ {}
-                          :data $ [] text
+                        d! $ app.schema/Op :router $ [] text
                       , &unit
                 .render load-plugin
           :examples $ []
@@ -956,7 +958,7 @@
                     match op
                       (:states cursor data)
                         dispatch-op! $ schema/Op :states
-                          decode-map-as cursor $ List Dynamic
+                          decode-map-as cursor $ List respo.schema/CoordKey
                           , data
                       _ $ eprintln "|Unknown op" op
               raise |Expected-Enum-operation
@@ -997,8 +999,7 @@
               (:some id)
                 do
                   dispatch-op! $ schema/Op :load-topic id
-                  dispatch-op! $ schema/Op :router $ {}
-                    :data $ [] id
+                  dispatch-op! $ schema/Op :router $ [] id
               (:none)
                 dispatch-op! $ schema/Op :top10
             println "|App started."
@@ -1061,9 +1062,9 @@
         'Op $ %{} 'CodeEntry
           :doc "|Dispatch operations of the reader, bound to the :dispatch-op type slot. HN payloads stay open data."
           :code $ quote $ defenum Op
-            :states (List Dynamic) Dynamic
+            :states (List respo.schema/CoordKey) Dynamic
             :content Dynamic
-            :router $ Map Tag Dynamic
+            :router $ List app.schema/ItemId
             :router-after Number app.schema/ItemId
             :hydrate-storage $ Map Tag Dynamic
             :highlight $ Tuple app.schema/ItemId Number
@@ -1116,22 +1117,19 @@
           :code $ quote $ defn updater (store op op-id op-time)
             match op
               (:states cursor s)
-                decode-map-as
-                  update-states store
-                    decode-map-as cursor $ List Dynamic
-                    , s
-                  Map Tag Dynamic
+                decode-map-as (update-states store cursor s) (Map Tag Dynamic)
               (:content c) (assoc store :content c)
-              (:router d) (assoc store :router d)
+              (:router coord)
+                assoc store :router $ {} $ :data coord
               (:router-after idx reply-id)
                 update store :router $ fn (router)
                   let
                       router-data $ decode-map-as router $ Map Tag Dynamic
                       coord $ decode-map-as
                         .unwrap-or (get router-data :data) ([])
-                        List Dynamic
+                        List app.schema/ItemId
                     {} $ :data $ conj
-                      slice coord 0 $ Option :some $ inc (decode-map-as idx 'Number)
+                      slice coord 0 $ Option :some $ inc idx
                       , reply-id
               (:hydrate-storage d)
                 decode-map-as d $ Map Tag Dynamic
