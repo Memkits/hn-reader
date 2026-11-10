@@ -11,24 +11,18 @@
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
         'comp-comment-list $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-comment-list (router resource highlighted)
+          :code $ quote $ defcomp comp-comment-list (coord resource highlighted)
             let
-                coord $ decode-map-as
-                  .unwrap-or (get router :data) ([])
-                  List app.schema/ItemId
-                highlighted-data $ decode-map-as
-                  either highlighted $ []
-                  List Dynamic
-                highlighted-id $ if (empty? highlighted-data) nil $ .unwrap (first highlighted-data)
-                raw-highlighted-index $ last highlighted-data
+                highlighted-id $ first highlighted
+                raw-highlighted-index $ last highlighted
                 highlighted-index $ if (.some? raw-highlighted-index)
                   Option :some $ decode-map-as (.unwrap raw-highlighted-index) 'Number
                   Option :none
-              list->
+              keyed->
                 {} (:class-name css/row)
                   :style $ {} $ :height |100%
                 -> coord $ map-indexed $ fn (idx parent-id)
-                  [] parent-id $ let
+                  keyed-element parent-id $ let
                       item $ if (= 0 idx)
                         .unwrap-or
                           get-in resource $ [] :topics parent-id
@@ -41,7 +35,7 @@
                         (String id) id
                       kids $ decode-map-as
                         either (read-field item :kids) ([])
-                        List Dynamic
+                        List app.schema/ItemId
                     div
                       {} $ :class-name $ str-spaced css/column css-comment-list
                       if (= 0 idx)
@@ -57,7 +51,7 @@
                               Fn app.schema/Op $ -> Unit
                               -> Unit
                             d! $ app.schema/Op :router $ slice coord 0 (Option :some idx)
-                      list->
+                      keyed->
                         {} (:class-name css/expand)
                           :style $ {} $ :padding "|40px 8px 160px 8px"
                         -> kids
@@ -68,18 +62,22 @@
                                   , nil
                               not $ reply-hidden? reply
                           map $ fn (reply-id)
-                            [] reply-id $ let
+                            keyed-component reply-id $ let
                                 reply $ .unwrap-or
                                   get-in resource $ [] :replies reply-id
                                   , nil
-                                k $ str parent-label |+ reply-id
+                                reply-label $ id->string reply-id
+                                k $ str parent-label |+ reply-label
                               respo.core/memo-comp-by k comp-reply reply (includes? coord reply-id)
-                                if
-                                  = (id->string highlighted-id) (id->string reply-id)
-                                  , highlighted-index $ Option :none
+                                match highlighted-id
+                                  (:some id)
+                                    if
+                                      = (id->string id) reply-label
+                                      , highlighted-index $ Option :none
+                                  (:none) (Option :none)
                                 , idx
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic) Dynamic (-> respo.schema/Component)
+          :schema $ quote $ Fn (List app.schema/ItemId) (Map Tag Dynamic) (List app.schema/ItemId) (-> respo.schema/Component)
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel resource)
             let
@@ -92,19 +90,25 @@
                   Map Tag Dynamic
                 router-data $ decode-map-as
                   .unwrap-or (get router :data) ([])
-                  List Dynamic
-                focus-id $ if (empty? router-data) nil $ .unwrap (first router-data)
+                  List app.schema/ItemId
+                highlighted $ decode-map-as
+                  either
+                    .unwrap-or (get store :highlighted) ([])
+                    []
+                  List app.schema/ItemId
+                focus-id $ first router-data
               div
                 {}
                   :class-name $ str-spaced css/fullscreen css/global css/row
                   :style $ {} $ :overflow-x :auto
                 comp-topic-list (>> states :topics) resource focus-id
-                let
-                    topic $ .unwrap-or
-                      get-in resource $ [] :topics focus-id
+                match focus-id
+                  (:some id)
+                    comp-frame $ .unwrap-or
+                      get-in resource $ [] :topics id
                       , nil
-                  comp-frame topic
-                comp-comment-list router resource $ .unwrap-or (get store :highlighted) ([])
+                  (:none) (comp-frame nil)
+                comp-comment-list router-data resource highlighted
                 div $ {} $ :style
                   {} $ :width |80vw
                 div
@@ -389,9 +393,12 @@
                     [] (read-field topic :id)
                       comp-topic topic
                         if
-                          =
-                            id->string $ read-field topic :id
-                            id->string focus-id
+                          match focus-id
+                            (:some id)
+                              =
+                                id->string $ read-field topic :id
+                                id->string id
+                            (:none) false
                           {} $ :background-color :white
                           {}
                         fn (e d!)
@@ -418,7 +425,7 @@
                       , &unit
                 .render load-plugin
           :examples $ []
-          :schema $ quote $ Fn (Map Dynamic Dynamic) (Map Tag Dynamic) Dynamic (-> respo.schema/Component)
+          :schema $ quote $ Fn respo.schema/States (Map Tag Dynamic) (Option app.schema/ItemId) (-> respo.schema/Component)
         'comp-topic-parent $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-topic-parent (topic)
             if (nil? topic)
@@ -784,7 +791,7 @@
           :require
             respo-ui.core :refer $ hsl
             respo-ui.core :as ui
-            respo.core :refer $ defcomp defeffect create-element >> <> div list-> button textarea span input section a
+            respo.core :refer $ defcomp defeffect create-element >> <> div list-> keyed-> keyed-element keyed-component button textarea span input section a
             respo.comp.space :refer $ space-x
             reel.comp.reel :refer $ comp-typed-reel
             respo-md.comp.md :refer $ comp-md
