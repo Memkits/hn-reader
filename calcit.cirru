@@ -760,7 +760,7 @@
               :overflow :auto
               :max-height 40
           :examples $ []
-          :schema $ quote $ Map Tag Dynamic
+          :schema $ quote $ Map Tag respo.schema/CssValue
         'style-reply-empty $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-reply-empty
             {}
