@@ -16,8 +16,8 @@
                 highlighted-id $ first highlighted
                 raw-highlighted-index $ last highlighted
                 highlighted-index $ if (.some? raw-highlighted-index)
-                  Option :some $ decode-map-as (.unwrap raw-highlighted-index) 'Number
-                  Option :none
+                  Some $ decode-map-as (.unwrap raw-highlighted-index) 'Number
+                  , None
               keyed->
                 {} (:class-name css/row)
                   :style $ {} $ :height |100%
@@ -50,7 +50,7 @@
                             hint-fn $ Fn
                               Fn app.schema/Op $ -> Unit
                               -> Unit
-                            d! $ app.schema/Op :router $ slice coord 0 (Option :some idx)
+                            d! $ app.schema/Op :router $ slice coord 0 (Some idx)
                       keyed->
                         {} (:class-name css/expand)
                           :style $ {} $ :padding "|40px 8px 160px 8px"
@@ -73,8 +73,8 @@
                                   (:some id)
                                     if
                                       = (id->string id) reply-label
-                                      , highlighted-index $ Option :none
-                                  (:none) (Option :none)
+                                      , highlighted-index None
+                                  (:none) None
                                 , idx
           :examples $ []
           :schema $ quote $ Fn (List app.schema/ItemId) (Map Tag Dynamic) (List app.schema/ItemId) (-> respo.schema/Component)
@@ -121,11 +121,11 @@
                       :inner-text |https://github.com/Memkits/hn-reader
                       :href |https://github.com/Memkits/hn-reader
                 if dev?
-                  Option :some $ comp-inspect |store store $ {} (:bottom 0)
-                  Option :none
+                  Some $ comp-inspect |store store $ {} (:bottom 0)
+                  , None
                 if dev?
-                  Option :some $ comp-typed-reel (>> states :reel) reel $ {}
-                  Option :none
+                  Some $ comp-typed-reel (>> states :reel) reel $ {}
+                  , None
           :examples $ []
           :schema $ quote $ Fn
             reel.typed/State app.schema/Op $ Map Tag Dynamic
@@ -187,7 +187,7 @@
                               :style $ {} $ :position :relative
                               :class-name style-reply-paragraph
                             if (.some? audio-target)
-                              Option :some $ div
+                              Some $ div
                                 {} $ :class-name $ str-spaced |clickable-container css-p-content
                                 comp-icon :volume-1
                                   {} (:font-size 18) (:cursor :pointer) (:line-height 1)
@@ -212,7 +212,7 @@
                                             decode-map-as (read-field reply :id) app.schema/ItemId
                                             , idx
                                           Tuple app.schema/ItemId Number
-                              Option :none
+                              , None
                             div
                               {} $ :style $ if
                                 and (.some? highlighted-idx)
@@ -341,7 +341,9 @@
                   let
                       url $ read-field topic :url
                     a $ {}
-                      :inner-text $ if (non-nil? url) (get-url-host url) |nothing
+                      :inner-text $ if (non-nil? url)
+                        get-url-host $ decode-map-as url String
+                        , |nothing
                       :href url
                       :target |_blank
                       :style $ {} (:text-overflow :ellipsis) (:overflow :hidden)
@@ -466,7 +468,9 @@
                   let
                       url $ read-field topic :url
                     a $ {}
-                      :inner-text $ if (non-nil? url) (get-url-host url) |nothing
+                      :inner-text $ if (non-nil? url)
+                        get-url-host $ decode-map-as url String
+                        , |nothing
                       :href url
                       :target |_blank
                       :style $ {} (:text-overflow :ellipsis) (:overflow :hidden)
@@ -478,7 +482,7 @@
               |$0 $ {} (:width 468) (:max-width |100vw) (:height |100%) (:overflow-y :auto) (:margin-right 0) (:padding "|0 8px") (:box-sizing :border-box) (:scrollbar-width :thin)
               |&::-webkit-scrollbar $ {} $ :width |6px
               |&::-webkit-scrollbar-track $ {} $ :background-color
-                hsl 0 0 100 $ Option :some 0
+                hsl 0 0 100 $ Some 0
               |&::-webkit-scrollbar-thumb $ {}
                 :background-color $ hsl 0 0 78
                 :border-radius |999px
@@ -521,7 +525,7 @@
                 :line-height |18px
                 :transition-duration |300ms
               |$0:hover $ {}
-                :box-shadow $ str "|0 1px 2px " $ hsl 0 0 0 (Option :some 0.06)
+                :box-shadow $ str "|0 1px 2px " $ hsl 0 0 0 (Some 0.06)
                 :background-color $ hsl 190 28 72
               |$0:active $ {} $ :transform "|scale(1.02)"
           :examples $ []
@@ -550,7 +554,7 @@
               |&::-webkit-scrollbar $ {} (:width |0px) (:height |0px)
               |$0:hover $ {}
                 :background-color $ hsl 0 0 99
-                :box-shadow $ str "|0 1px 2px " $ hsl 0 0 0 (Option :some 0.06)
+                :box-shadow $ str "|0 1px 2px " $ hsl 0 0 0 (Some 0.06)
           :examples $ []
           :schema $ quote String
         'css-reply-footer $ %{} 'CodeEntry (:doc |)
@@ -638,7 +642,7 @@
             {} $ |$0 $ {}
               :border-color $ hsl 0 0 74
               :background-color $ hsl 0 0 99
-              :box-shadow $ str "|0 1px 2px " $ hsl 0 0 0 (Option :some 0.07)
+              :box-shadow $ str "|0 1px 2px " $ hsl 0 0 0 (Some 0.07)
           :examples $ []
           :schema $ quote String
         'css-topic-title $ %{} 'CodeEntry (:doc |)
@@ -690,12 +694,10 @@
         'get-url-host $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-url-host (url)
             let
-                host-url $ unsafe-coerce
-                  new js/URL $ decode-map-as url 'String
-                  , 'js-ffi.shared/UrlHost
+                host-url $ js-cast (new js/URL url) js-ffi.shared/UrlHost
               .-host host-url
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> String) (:features :js-ffi)
+          :schema $ quote $ Fn String (-> String) (:features :js-ffi)
         'html->readable $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn html->readable (html)
             -> html (&str:replace |<p> "| ") (&str:replace |</p> "| ") (&str:replace |<li> "| ") (&str:replace |</li> "| ") (&str:replace |<br> "| ") (&str:replace |<br/> "| ")
@@ -761,7 +763,7 @@
           :code $ quote $ defstyle style-reply-empty
             {}
               |& $ .merge style-reply-box $ {} (:padding "|8px 16px") (:border-width "|1px 1px 2px 1px")
-                :background-color $ hsl 0 0 99 $ Option :some 0
+                :background-color $ hsl 0 0 99 $ Some 0
                 :margin-bottom 0
                 :opacity 0.2
               |&::-webkit-scrollbar $ {} (:width |0px) (:height |0px)
@@ -816,7 +818,7 @@
         'get-audio-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-audio-target ()
             match (get-env |audio-target)
-              (:some configured) (Option :some configured)
+              (:some configured) (Some configured)
               (:none) (js-ffi.browser/storage-get |audio-target)
           :examples $ []
           :schema $ quote $ Fn
@@ -951,7 +953,7 @@
           :code $ quote $ defref *reel (typed/new-reel schema/store)
           :examples $ []
           :schema $ quote $ Ref
-            reel.typed/State app.schema/Op $ Map Tag Dynamic
+            typed/State schema/Op $ Map Tag Dynamic
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             if (enum? op)
@@ -960,7 +962,7 @@
                   reset! *reel $ typed/apply-control updater @*reel control
                 (:none)
                   if
-                    = (enum-definition op) (Option :some schema/Op)
+                    = (enum-definition op) (Some schema/Op)
                     dispatch-op! $ decode-map-as op 'app.schema/Op
                     match op
                       (:states cursor data)
@@ -983,7 +985,7 @@
               _ $ reset! *reel $ typed/record-op updater @*reel op (generate-id!) (js-ffi.shared/now-ms)
             , &unit
           :examples $ []
-          :schema $ quote $ Fn app.schema/Op (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/Op (-> Unit) (:features :js-ffi)
         'get-mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-mount-target ()
             .unwrap $ respo.ffi.browser/query-selector |.app
@@ -1136,7 +1138,7 @@
                         .unwrap-or (get router-data :data) ([])
                         List app.schema/ItemId
                     {} $ :data $ conj
-                      slice coord 0 $ Option :some $ inc idx
+                      slice coord 0 $ Some $ inc idx
                       , reply-id
               (:hydrate-storage d)
                 decode-map-as d $ Map Tag Dynamic
