@@ -856,7 +856,7 @@
           :code $ quote $ defn assoc-resource-in (resource path value)
             decode-map-as (assoc-in resource path value) (Map Tag Dynamic)
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (List Dynamic) Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) (List app.schema/ResourceKey) Dynamic
             -> $ Map Tag Dynamic
         'data-get! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn data-get! (url)
@@ -1082,6 +1082,10 @@
             :load-reply app.schema/ItemId
           :examples $ []
           :schema $ quote EnumDef
+        'ResourceKey $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion ResourceKey Tag Number String
+          :examples $ []
+          :schema $ quote UnionDef
         'id->string $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn id->string (data)
             js-ffi.contract/expect-string |id->string $ js/String data
