@@ -40,7 +40,9 @@ test("reader keeps topic, Markdown reply, route depth and whole-store UI state",
     assert.ok(html.includes("https://example.com/fixture"));
     const textRoute = updater(store, op("router", c._$L_("101")), "fixture", 0);
     assert.equal(field(field(textRoute, t.router), t.data).get(0), "101");
-    assert.ok(make_string(comp_container(new_reel(textRoute), resource)).includes("Fixture paragraph"));
+    const textRouteHtml = make_string(comp_container(new_reel(textRoute), resource));
+    assert.ok(textRouteHtml.includes("Fixture paragraph"));
+    assert.match(textRouteHtml, /background-color:white/);
     const highlighted = updater(textRoute, op("highlight", c._$L_("102", 0)), "fixture", 0);
     const restored = c.parse_cirru_edn(c.format_cirru_edn(highlighted));
     assert.match(make_string(comp_container(new_reel(restored), resource)), /background-color:hsl\(80,80%,90%\)/);
