@@ -397,9 +397,11 @@
                         if
                           match focus-id
                             (:some id)
-                              =
-                                id->string $ read-field topic :id
-                                id->string id
+                              match
+                                try-decode-map-as (read-field topic :id) app.schema/ItemId
+                                (:ok topic-id)
+                                  = (id->string topic-id) (id->string id)
+                                (:err _) false
                             (:none) false
                           {} $ :background-color :white
                           {}
@@ -1090,7 +1092,7 @@
           :code $ quote $ defn id->string (data)
             js-ffi.contract/expect-string |id->string $ js/String data
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> String) (:features :js-ffi)
+          :schema $ quote $ Fn ItemId (-> String) (:features :js-ffi)
         'read-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-field (data field)
             if (nil? data) nil $ let
