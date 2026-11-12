@@ -719,7 +719,7 @@
                 content $ either (read-field reply :text) |
               not $ not $ or (read-field reply :dead) (read-field reply :deleted) (= content |[dead]) (= content |[flagged])
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Bool)
+          :schema $ quote $ Fn Input (-> Bool) (:generics Input)
         'speech-via-api! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn speech-via-api! (text on-play on-next)
             synthesizeAzureSpeech text (get-azure-key) on-play on-next
@@ -1031,7 +1031,7 @@
               do (remove-watch! *reel :changes) (clear-cache!)
                 add-watch! *reel :changes $ fn (reel prev) (render-app!)
                 reset! *reel $ typed/refresh updater
-                  assert-type @*reel $ reel.typed/State app.schema/Op $ Map Tag Dynamic
+                  assert-type @*reel $ typed/State schema/Op $ Map Tag Dynamic
                   assert-type schema/store $ Map Tag Dynamic
                 hud! |ok~ |Ok
               hud! |error build-errors
@@ -1108,8 +1108,9 @@
               or (read-field data :kids) ([])
               List Number
           :examples $ []
-          :schema $ quote $ Fn Dynamic
+          :schema $ quote $ Fn Input
             -> $ List Number
+            :generics Input
         'set-js-string! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn set-js-string! (target field value) (aset target field value) &unit
           :examples $ []
