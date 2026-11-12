@@ -77,7 +77,7 @@
                                   (:none) None
                                 , idx
           :examples $ []
-          :schema $ quote $ Fn (List app.schema/ItemId) (Map Tag Dynamic) (List app.schema/ItemId) (-> respo.schema/Component)
+          :schema $ quote $ Fn (List app.schema/ItemId) (Map Tag Dynamic) (List app.schema/ItemId) (-> respo.schema/Component) (:features :io)
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel resource)
             let
@@ -131,6 +131,7 @@
             reel.typed/State app.schema/Op $ Map Tag Dynamic
             Map Tag Dynamic
             -> respo.schema/Component
+            :features :io
         'comp-frame $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-frame (topic)
             if (non-nil? topic)
@@ -250,7 +251,7 @@
                             <> (str size "| replies") css-has-comment
                           <> "|No replies" css-no-comment
           :examples $ []
-          :schema $ quote $ Fn Dynamic Bool (Option Number) Number (-> respo.schema/Component)
+          :schema $ quote $ Fn Dynamic Bool (Option Number) Number (-> respo.schema/Component) (:features :io)
         'comp-reply-parent $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-reply-parent (reply on-close)
             if (nil? reply)
@@ -692,7 +693,7 @@
                   (:some key) key
                   (:none) (raise |Missing-Azure-speech-key)
           :examples $ []
-          :schema $ quote $ Fn (-> String) (:features :js-ffi)
+          :schema $ quote $ Fn (-> String) (:features :io :js-ffi)
         'get-url-host $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-url-host (url)
             let
@@ -712,7 +713,7 @@
             speech-synthesis-speak! text
             , &unit
           :examples $ []
-          :schema $ quote $ Fn String (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn String (-> Unit) (:features :io :js-ffi)
         'reply-hidden? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reply-hidden? (reply)
             let
@@ -729,7 +730,7 @@
             Fn $ -> Unit
             Fn $ -> Unit
             -> Unit
-            :features :js-ffi
+            :features :io :js-ffi
         'style-address $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-address
             {} $ |& $ {} (:padding "|0 8px") (:overflow :hidden) (:width |100%)
@@ -825,7 +826,7 @@
           :examples $ []
           :schema $ quote $ Fn
             -> $ Option String
-            :features :js-ffi
+            :features :io :js-ffi
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
             {} (:dev-ui |http://localhost:8100/main-fonts.css) (:release-ui |http://cdn.tiye.me/favored-fonts/main-fonts.css) (:cdn-url |http://cdn.tiye.me/hn-reader/) (:title "|HN Reader") (:icon |http://cdn.tiye.me/logo/memkits.png) (:storage-key |hn-reader)
@@ -896,12 +897,14 @@
                   either (read-field reply :kids) ([])
                   List app.schema/ItemId
               js-await $ promise-all reply-ids $ fn (reply-id)
-                hint-fn $ Fn app.schema/ItemId (-> Dynamic) (:async)
+                hint-fn $ Fn app.schema/ItemId (-> Unit) (:features :js-ffi :state) (:async)
                 let
                     reply $ js-await $ data-get! (item-url reply-id)
                   swap! *resource assoc-resource-in ([] :replies reply-id) reply
+                  , &unit
+            , &unit
           :examples $ []
-          :schema $ quote $ Fn app.schema/ItemId (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn app.schema/ItemId (-> Unit) (:features :js-ffi :state) (:async)
         'load-top10! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-top10! () (hint-fn Async)
             swap! *resource assoc :top10 $ []
@@ -911,13 +914,15 @@
                   List app.schema/ItemId
                 top-ids $ take data 30
               js-await $ promise-all top-ids $ fn (topic-id)
-                hint-fn $ Fn app.schema/ItemId (-> Dynamic) (:async)
+                hint-fn $ Fn app.schema/ItemId (-> Unit) (:features :js-ffi :state) (:async)
                 let
                     topic $ js-await $ data-get! (item-url topic-id)
                   swap! *resource append-topic topic
                   swap! *resource assoc-resource-in ([] :topics topic-id) topic
+                  , &unit
+            , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state) (:async)
         'load-topic! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-topic! (topic-id) (hint-fn Async)
             let
@@ -927,12 +932,14 @@
                   List app.schema/ItemId
               swap! *resource assoc-resource-in ([] :topics topic-id) topic
               js-await $ promise-all reply-ids $ fn (reply-id)
-                hint-fn $ Fn app.schema/ItemId (-> Dynamic) (:async)
+                hint-fn $ Fn app.schema/ItemId (-> Unit) (:features :js-ffi :state) (:async)
                 let
                     reply $ js-await $ data-get! (item-url reply-id)
                   swap! *resource assoc-resource-in ([] :replies reply-id) reply
+                  , &unit
+            , &unit
           :examples $ []
-          :schema $ quote $ Fn app.schema/ItemId (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn app.schema/ItemId (-> Unit) (:features :js-ffi :state) (:async)
         'on-operation $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-operation (op)
             match op
@@ -942,7 +949,7 @@
               _ $ eprintln "|Unknown op" op
             , &unit
           :examples $ []
-          :schema $ quote $ Fn app.schema/Op (-> Unit)
+          :schema $ quote $ Fn app.schema/Op (-> Unit) (:features :io :state)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.data-gather
           :require
@@ -975,7 +982,7 @@
               raise |Expected-Enum-operation
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn Dynamic (-> Unit) (:features :io :js-ffi :state)
         'dispatch-op! $ %{} 'CodeEntry
           :doc "|Handle a named app operation. Network operations run outside Reel history."
           :code $ quote $ defn dispatch-op! (op)
@@ -987,7 +994,7 @@
               _ $ reset! *reel $ typed/record-op updater @*reel op (generate-id!) (js-ffi.shared/now-ms)
             , &unit
           :examples $ []
-          :schema $ quote $ Fn schema/Op (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/Op (-> Unit) (:features :io :js-ffi :state)
         'get-mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-mount-target ()
             .unwrap $ respo.ffi.browser/query-selector |.app
@@ -1016,7 +1023,7 @@
             println "|App started."
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! (e)
             js-ffi.browser/storage-set!
@@ -1024,7 +1031,7 @@
               format-cirru-edn $ :store @*reel
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn Dynamic (-> Unit) (:features :js-ffi :state)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
@@ -1037,7 +1044,7 @@
               hud! |error build-errors
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             respo.core/render-with! (get-mount-target)
@@ -1045,7 +1052,7 @@
               , dispatch!
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
@@ -1154,6 +1161,7 @@
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) app.schema/Op String Number
             -> $ Map Tag Dynamic
+            :features :io
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require $ respo.cursor :refer $ update-states
