@@ -135,7 +135,10 @@
         'comp-frame $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-frame (topic)
             if (non-nil? topic)
-              [] (effect-load topic)
+              []
+                effect-load $ .map
+                  nil->option $ read-field topic :url
+                  fn (url) (decode-map-as url 'String)
                 div
                   {} $ :class-name $ str-spaced css/column style-iframe-container
                   div
@@ -666,7 +669,7 @@
           :examples $ []
           :schema $ quote $ Fn Bool (-> respo.schema/Effect) (:features :js-ffi)
         'effect-load $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defeffect effect-load (topic) (action el at-place?)
+          :code $ quote $ defeffect effect-load (url) (action el at-place?)
             let
                 root $ element-host el
                 target $ element-query-selector root |#frame
@@ -676,14 +679,15 @@
                   .some? target
                 let
                     frame $ .unwrap target
-                    url $ read-field topic :url
-                  if (non-nil? url)
-                    do
-                      element-set-attribute! frame |src $ str |data:, $ js/encodeURIComponent "|setting iframe..."
-                      timeout-call 30 $ fn () $ element-set-attribute! frame |src (decode-map-as url 'String)
-                    element-set-attribute! frame |src $ str |data:, $ js/encodeURIComponent "|no url to display."
+                  match url
+                    (:some address)
+                      do
+                        element-set-attribute! frame |src $ str |data:, $ js/encodeURIComponent "|setting iframe..."
+                        timeout-call 30 $ fn () $ element-set-attribute! frame |src (decode-map-as address 'String)
+                    (:none)
+                      element-set-attribute! frame |src $ str |data:, $ js/encodeURIComponent "|no url to display."
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> respo.schema/Effect) (:features :js-ffi)
+          :schema $ quote $ Fn (Option String) (-> respo.schema/Effect) (:features :js-ffi)
         'get-azure-key $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-azure-key ()
             match (get-env |azure-key)
