@@ -857,14 +857,22 @@
                 List Dynamic
               , topic
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) Topic
             -> $ Map Tag Dynamic
+            :generics Topic
         'assoc-resource-in $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn assoc-resource-in (resource path value)
-            decode-map-as (assoc-in resource path value) (Map Tag Dynamic)
+          :code $ quote $ defn assoc-resource-in (resource bucket id value)
+            let
+                key $ match bucket
+                  (:topics) :topics
+                  (:replies) :replies
+              decode-map-as
+                assoc-in resource ([] key id) value
+                Map Tag Dynamic
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (List app.schema/ResourceKey) Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/ResourceBucket app.schema/ItemId Value
             -> $ Map Tag Dynamic
+            :generics Value
         'data-get! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn data-get! (url)
             hint-fn $ Fn String (-> Dynamic) (:async)
@@ -904,7 +912,7 @@
                 hint-fn $ Fn app.schema/ItemId (-> Unit) (:features :js-ffi :state) (:async)
                 let
                     reply $ js-await $ data-get! (item-url reply-id)
-                  swap! *resource assoc-resource-in ([] :replies reply-id) reply
+                  swap! *resource assoc-resource-in (app.schema/ResourceBucket :replies) reply-id reply
                   , &unit
             , &unit
           :examples $ []
@@ -922,7 +930,7 @@
                 let
                     topic $ js-await $ data-get! (item-url topic-id)
                   swap! *resource append-topic topic
-                  swap! *resource assoc-resource-in ([] :topics topic-id) topic
+                  swap! *resource assoc-resource-in (app.schema/ResourceBucket :topics) topic-id topic
                   , &unit
             , &unit
           :examples $ []
@@ -934,12 +942,12 @@
                 reply-ids $ decode-map-as
                   either (read-field topic :kids) ([])
                   List app.schema/ItemId
-              swap! *resource assoc-resource-in ([] :topics topic-id) topic
+              swap! *resource assoc-resource-in (app.schema/ResourceBucket :topics) topic-id topic
               js-await $ promise-all reply-ids $ fn (reply-id)
                 hint-fn $ Fn app.schema/ItemId (-> Unit) (:features :js-ffi :state) (:async)
                 let
                     reply $ js-await $ data-get! (item-url reply-id)
-                  swap! *resource assoc-resource-in ([] :replies reply-id) reply
+                  swap! *resource assoc-resource-in (app.schema/ResourceBucket :replies) reply-id reply
                   , &unit
             , &unit
           :examples $ []
@@ -1095,10 +1103,10 @@
             :load-reply app.schema/ItemId
           :examples $ []
           :schema $ quote EnumDef
-        'ResourceKey $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defunion ResourceKey Tag Number String
+        'ResourceBucket $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum ResourceBucket (:topics) (:replies)
           :examples $ []
-          :schema $ quote UnionDef
+          :schema $ quote EnumDef
         'id->string $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn id->string (data)
             js-ffi.contract/expect-string |id->string $ js/String data
@@ -1112,7 +1120,7 @@
                 .unwrap $ get fields field
                 , nil
           :examples $ []
-          :schema $ quote $ Fn Dynamic Tag (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn Input Tag (-> Dynamic) (:generics Input) (:features :js-ffi)
         'read-kids $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-kids (data)
             decode-map-as
