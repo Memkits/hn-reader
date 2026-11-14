@@ -77,9 +77,9 @@
                                   (:none) None
                                 , idx
           :examples $ []
-          :schema $ quote $ Fn (List app.schema/ItemId) (Map Tag Dynamic) (List app.schema/ItemId) (-> respo.schema/Component) (:features :io)
+          :schema $ quote $ Fn (List app.schema/ItemId) (Map Tag Dynamic) (List app.schema/ItemId) (-> respo.schema/Component) (:features :io :state)
         'comp-container $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-container (reel resource)
+          :code $ quote $ defcomp comp-container (reel resource on-control!)
             let
                 store $ :store reel
                 states $ decode-map-as
@@ -124,14 +124,15 @@
                   Some $ comp-inspect |store store $ {} (:bottom 0)
                   , None
                 if dev?
-                  Some $ comp-typed-reel (>> states :reel) reel $ {}
+                  Some $ comp-typed-reel (>> states :reel) reel ({}) on-control!
                   , None
           :examples $ []
           :schema $ quote $ Fn
             reel.typed/State app.schema/Op $ Map Tag Dynamic
             Map Tag Dynamic
+            Fn reel.typed/Control (-> Unit) (:features :io :state)
             -> respo.schema/Component
-            :features :io
+            :features :io :state
         'comp-frame $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-frame (topic)
             if (non-nil? topic)
@@ -433,7 +434,7 @@
                       , &unit
                 .render load-plugin
           :examples $ []
-          :schema $ quote $ Fn respo.schema/States (Map Tag Dynamic) (Option app.schema/ItemId) (-> respo.schema/Component)
+          :schema $ quote $ Fn respo.schema/States (Map Tag Dynamic) (Option app.schema/ItemId) (-> respo.schema/Component) (:features :state)
         'comp-topic-parent $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-topic-parent (topic)
             if (nil? topic)
@@ -1060,7 +1061,10 @@
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             respo.core/render-with! (get-mount-target)
-              fn () $ comp-container @*reel @*resource
+              fn () $ comp-container @*reel @*resource $ fn (control)
+                hint-fn $ Fn typed/Control (-> Unit) (:features :io :state)
+                reset! *reel $ typed/apply-control updater @*reel control
+                , &unit
               , dispatch!
             , &unit
           :examples $ []
