@@ -1020,7 +1020,7 @@
             render-app!
             add-watch! *reel :changes $ fn (r p) (render-app!)
             add-watch! *resource :changes $ fn (r p) (render-app!)
-            listen-devtools! |k dispatch!
+            listen-devtools! |k on-control!
             ; js/window.addEventListener |beforeunload persist-storage!
             ; let
               (raw (js/localStorage.getItem (:storage-key config/site)))
@@ -1037,6 +1037,12 @@
             , &unit
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
+        'on-control! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn on-control! (control)
+            reset! *reel $ typed/apply-control updater @*reel control
+            , &unit
+          :examples $ []
+          :schema $ quote $ Fn typed/Control (-> Unit) (:features :io :state)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! (e)
             js-ffi.browser/storage-set!
@@ -1061,10 +1067,7 @@
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             respo.core/render-with! (get-mount-target)
-              fn () $ comp-container @*reel @*resource $ fn (control)
-                hint-fn $ Fn typed/Control (-> Unit) (:features :io :state)
-                reset! *reel $ typed/apply-control updater @*reel control
-                , &unit
+              fn () $ comp-container @*reel @*resource on-control!
               , dispatch!
             , &unit
           :examples $ []
