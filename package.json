@@ -8,7 +8,7 @@
     "build": "calcit calcit.cirru && vite build",
     "dev": "calcit calcit.cirru && vite",
     "watch": "calcit calcit.cirru -w",
-    "test": "node --test tests/reader.test.mjs"
+    "test": "calcit --init-fn respo.render.html/make-string --reload-fn respo.render.html/make-string js && node --test tests/reader.test.mjs"
   },
   "repository": {
     "type": "git",
@@ -22,7 +22,7 @@
     "vite": "^8.0.16"
   },
   "dependencies": {
-    "@calcit/procs": "0.42.1",
+    "@calcit/procs": "0.43.0",
     "@calcit/std": "^0.0.3",
     "cirru-color": "^0.2.4",
     "copy-text-to-clipboard": "^3.2.2",

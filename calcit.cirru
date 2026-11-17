@@ -255,7 +255,7 @@
                             <> (str size "| replies") css-has-comment
                           <> "|No replies" css-no-comment
           :examples $ []
-          :schema $ quote $ Fn Dynamic Bool (Option Number) Number (-> respo.schema/Component) (:features :io)
+          :schema $ quote $ Fn Dynamic Bool (Option Number) Number (-> respo.schema/Component) (:features :io :state)
         'comp-reply-parent $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-reply-parent (reply on-close)
             if (nil? reply)
@@ -434,7 +434,7 @@
                       , &unit
                 .render load-plugin
           :examples $ []
-          :schema $ quote $ Fn respo.schema/States (Map Tag Dynamic) (Option app.schema/ItemId) (-> respo.schema/Component) (:features :state)
+          :schema $ quote $ Fn respo.schema/States (Map Tag Dynamic) (Option app.schema/ItemId) (-> respo.schema/Component) (:features :io :state)
         'comp-topic-parent $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-topic-parent (topic)
             if (nil? topic)
@@ -1176,11 +1176,10 @@
               (:hydrate-storage d)
                 decode-map-as d $ Map Tag Dynamic
               (:highlight d) (assoc store :highlighted d)
-              _ $ do (eprintln "|unknown op:" op) store
+              _ store
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) app.schema/Op String Number
             -> $ Map Tag Dynamic
-            :features :io
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require $ respo.cursor :refer $ update-states
