@@ -434,7 +434,7 @@
                       , &unit
                 .render load-plugin
           :examples $ []
-          :schema $ quote $ Fn respo.schema/States (Map Tag Dynamic) (Option app.schema/ItemId) (-> respo.schema/Component) (:features :io :state)
+          :schema $ quote $ Fn (Map Dynamic Dynamic) (Map Tag Dynamic) (Option app.schema/ItemId) (-> respo.schema/Component) (:features :io :state)
         'comp-topic-parent $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-topic-parent (topic)
             if (nil? topic)
