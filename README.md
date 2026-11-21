@@ -30,8 +30,8 @@ PR 资源按 PR 编号、运行编号和重试次数隔离，同组部署排队�
 生产 CDN 前缀和原 rsync 路径不变，迁移只涉及前端资源。
 
 使用已发布的配对 Calcit/procs **0.44.0**、Caps 0.1.1、Node.js 24 和 Yarn 4.18.0。
-模块使用正式 Respo 0.19.11、UI 0.15.5、Reel 0.11.3、Alerts 0.14.6、Feather 0.6.7、
-Markdown 0.9.3 和 JS-FFI 0.2.18，传递 Router 0.12.9。
+模块使用正式 Respo 0.19.13、UI 0.15.7、Reel 0.11.5、Alerts 0.14.8、Feather 0.6.9、
+Markdown 0.9.5 和 JS-FFI 0.2.19，传递 Router 0.12.11。
 HN API 的数字 ID 和 Load 输入框的字符串 ID 都可以请求原有端点，并分别保留缓存键。
 请求 ID 使用 `ItemId = Number | String`，载入故事和评论前会拒绝其他类型的 ID。
 故事与评论的其他字段继续按开放 JSON 读取。
