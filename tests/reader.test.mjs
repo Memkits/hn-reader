@@ -82,3 +82,36 @@ test("numeric and text topic IDs use the same HN endpoint and retain their cache
     c.reset_$x_(_$s_resource, before);
   }
 });
+
+test("Azure speech uses the installed SDK without a global or network", async () => {
+  const sdk = await import("microsoft-cognitiveservices-speech-sdk/distrib/lib/microsoft.cognitiveservices.speech.sdk.js");
+  const prior = sdk.SpeechSynthesizer.prototype.speakSsmlAsync;
+  const globalSdk = Object.getOwnPropertyDescriptor(globalThis, "SpeechSDK");
+  const fetch = Object.getOwnPropertyDescriptor(globalThis, "fetch");
+  const socket = Object.getOwnPropertyDescriptor(globalThis, "WebSocket");
+  const calls = [];
+  let played = 0;
+  let next = 0;
+  try {
+    Reflect.deleteProperty(globalThis, "SpeechSDK");
+    globalThis.fetch = () => { throw new Error("unexpected network request"); };
+    globalThis.WebSocket = class { constructor() { throw new Error("unexpected WebSocket"); } };
+    sdk.SpeechSynthesizer.prototype.speakSsmlAsync = function (ssml, success) {
+      calls.push(ssml);
+      success({ audioData: new ArrayBuffer(0) });
+    };
+    const { synthesizeAzureSpeech } = await import("../entry/play-audio.js");
+    synthesizeAzureSpeech("Synthetic reader text", "synthetic-unused-key", () => played++, () => next++);
+    synthesizeAzureSpeech("Synthetic reader text", "synthetic-unused-key", () => played++, () => next++);
+    assert.equal(calls.length, 1);
+    assert.match(calls[0], /Synthetic reader text/);
+    assert.equal(played, 1);
+    assert.equal(next, 0);
+  } finally {
+    sdk.SpeechSynthesizer.prototype.speakSsmlAsync = prior;
+    for (const [key, descriptor] of [["SpeechSDK", globalSdk], ["fetch", fetch], ["WebSocket", socket]]) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else Reflect.deleteProperty(globalThis, key);
+    }
+  }
+});
