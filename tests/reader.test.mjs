@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { invoke_method } from "@calcit/procs";
 import * as c from "../js-out/calcit.core.mjs";
-import { Op, store } from "../js-out/app.schema.mjs";
+import { Op, Resource, store } from "../js-out/app.schema.mjs";
 import { updater } from "../js-out/app.updater.mjs";
 import { new_reel } from "../js-out/reel.typed.mjs";
 import { comp_container } from "../js-out/app.comp.container.mjs";
 import { make_string } from "../js-out/respo.render.html.mjs";
-import { load_topic_$x_, _$s_resource } from "../js-out/app.data-gather.mjs";
+import { load_topic_$x_, load_top10_$x_, _$s_resource } from "../js-out/app.data-gather.mjs";
 
 const t = c.init_tags(["top10", "topics", "replies", "id", "title", "score", "by", "time", "url", "kids", "text", "router", "data", "states", "editor"]);
 const map = c._$n__$M_;
@@ -31,9 +31,9 @@ test("reader keeps topic, Markdown reply, route depth and whole-store UI state",
     Object.defineProperty(globalThis, "localStorage", { configurable: true, value: localStorage });
     const topic = map(t.id, 101, t.title, "Fixture topic", t.score, 42, t.by, "author", t.time, 0, t.url, "https://example.com/fixture", t.kids, c._$L_(102));
     const reply = map(t.id, 102, t.text, "Fixture paragraph", t.by, "commenter", t.time, 0, t.kids, c._$L_());
-    const resource = map(t.top10, c._$L_(topic), t.topics, map(101, topic, "101", topic), t.replies, map(102, reply));
+    const resource = c._$n__PCT__$M_(Resource, t.top10, c._$L_(topic), t.topics, map(101, topic, "101", topic), t.replies, map(102, reply));
     let db = updater(store, op("router", c._$L_(101)), "fixture", 0);
-    const pending = map(t.top10, c._$L_(), t.topics, map(), t.replies, map());
+    const pending = c._$n__PCT__$M_(Resource, t.top10, c._$L_(), t.topics, map(), t.replies, map());
     assert.ok(make_string(comp_container(new_reel(db), pending, () => {})).includes("loading..."));
     const html = make_string(comp_container(new_reel(db), resource, () => {}));
     assert.ok(html.includes("Fixture topic") && html.includes("Fixture paragraph"));
@@ -65,6 +65,7 @@ test("numeric and text topic IDs use the same HN endpoint and retain their cache
   try {
     globalThis.fetch = async (url) => {
       calls.push(url);
+      if (url === "https://hacker-news.firebaseio.com/v0/item/103.json?print=pretty") return new Response("null");
       if (url === "https://hacker-news.firebaseio.com/v0/item/101.json?print=pretty") return new Response('{"id":101,"kids":[102]}');
       assert.equal(url, "https://hacker-news.firebaseio.com/v0/item/102.json?print=pretty");
       return new Response('{"id":102,"text":"cached reply"}');
@@ -77,6 +78,33 @@ test("numeric and text topic IDs use the same HN endpoint and retain their cache
     const resource = c.deref(_$s_resource);
     assert.equal(field(field(field(resource, t.replies), 102), t.id), 102);
     assert.equal(calls.length, 4);
+    await load_topic_$x_(103);
+    assert.equal(field(field(c.deref(_$s_resource), t.topics), 103), null);
+  } finally {
+    globalThis.fetch = originalFetch;
+    c.reset_$x_(_$s_resource, before);
+  }
+});
+
+test("concurrent top stories preserve both topic cache entries", async () => {
+  const originalFetch = globalThis.fetch;
+  const before = c.deref(_$s_resource);
+  const pending = new Map();
+  try {
+    globalThis.fetch = async (url) => {
+      if (url.endsWith("/topstories.json?print=pretty")) return new Response("[101,102]");
+      return new Promise((resolve) => pending.set(url, resolve));
+    };
+    const loading = load_top10_$x_();
+    for (let attempt = 0; pending.size < 2 && attempt < 100; attempt++) await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(pending.size, 2);
+    pending.get("https://hacker-news.firebaseio.com/v0/item/102.json?print=pretty")(new Response('{"id":102}'));
+    pending.get("https://hacker-news.firebaseio.com/v0/item/101.json?print=pretty")(new Response('{"id":101}'));
+    await loading;
+    const resource = c.deref(_$s_resource);
+    assert.equal(c.count(field(resource, t.top10)), 2);
+    assert.equal(field(field(field(resource, t.topics), 101), t.id), 101);
+    assert.equal(field(field(field(resource, t.topics), 102), t.id), 102);
   } finally {
     globalThis.fetch = originalFetch;
     c.reset_$x_(_$s_resource, before);

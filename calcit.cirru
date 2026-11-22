@@ -25,10 +25,10 @@
                   keyed-element parent-id $ let
                       item $ if (= 0 idx)
                         .unwrap-or
-                          get-in resource $ [] :topics parent-id
+                          get-in (:topics resource) ([] parent-id)
                           , nil
                         .unwrap-or
-                          get-in resource $ [] :replies parent-id
+                          get-in (:replies resource) ([] parent-id)
                           , nil
                       parent-label $ match parent-id
                         (Number id) (str id)
@@ -40,11 +40,11 @@
                       {} $ :class-name $ str-spaced css/column css-comment-list
                       if (= 0 idx)
                         comp-topic-parent $ .unwrap-or
-                          get-in resource $ [] :topics parent-id
+                          get-in (:topics resource) ([] parent-id)
                           , nil
                         comp-reply-parent
                           .unwrap-or
-                            get-in resource $ [] :replies parent-id
+                            get-in (:replies resource) ([] parent-id)
                             , nil
                           fn (d!)
                             hint-fn $ Fn
@@ -58,13 +58,13 @@
                           filter $ fn (reply-id)
                             let
                                 reply $ .unwrap-or
-                                  get-in resource $ [] :replies reply-id
+                                  get-in (:replies resource) ([] reply-id)
                                   , nil
                               not $ reply-hidden? reply
                           map $ fn (reply-id)
                             keyed-component reply-id $ let
                                 reply $ .unwrap-or
-                                  get-in resource $ [] :replies reply-id
+                                  get-in (:replies resource) ([] reply-id)
                                   , nil
                                 reply-label $ id->string reply-id
                                 k $ str parent-label |+ reply-label
@@ -77,7 +77,7 @@
                                   (:none) None
                                 , idx
           :examples $ []
-          :schema $ quote $ Fn (List app.schema/ItemId) (Map Tag Dynamic) (List app.schema/ItemId) (-> respo.schema/Component) (:features :io :state)
+          :schema $ quote $ Fn (List app.schema/ItemId) app.schema/Resource (List app.schema/ItemId) (-> respo.schema/Component) (:features :io :state)
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel resource on-control!)
             let
@@ -105,7 +105,7 @@
                 match focus-id
                   (:some id)
                     comp-frame $ .unwrap-or
-                      get-in resource $ [] :topics id
+                      get-in (:topics resource) ([] id)
                       , nil
                   (:none) (comp-frame nil)
                 comp-comment-list router-data resource highlighted
@@ -129,10 +129,10 @@
           :examples $ []
           :schema $ quote $ Fn
             reel.typed/State app.schema/Op $ Map Tag Dynamic
-            Map Tag Dynamic
-            Fn reel.typed/Control (-> Unit) (:features :io :state)
-            -> respo.schema/Component
-            :features :io :state
+            , app.schema/Resource
+              Fn reel.typed/Control (-> Unit) (:features :io :state)
+              -> respo.schema/Component
+              :features :io :state
         'comp-frame $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-frame (topic)
             if (non-nil? topic)
@@ -362,9 +362,7 @@
         'comp-topic-list $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-topic-list (states resource focus-id)
             let
-                topics $ decode-map-as
-                  .unwrap-or (get resource :top10) ([])
-                  List Dynamic
+                topics $ :top10 resource
                 no-list? $ empty? topics
                 load-plugin $ use-prompt (>> states :load)
                   {} (:text "|Topic id:") (:placeholder "|use number id from hacker news url")
@@ -434,7 +432,7 @@
                       , &unit
                 .render load-plugin
           :examples $ []
-          :schema $ quote $ Fn (Map Dynamic Dynamic) (Map Tag Dynamic) (Option app.schema/ItemId) (-> respo.schema/Component) (:features :io :state)
+          :schema $ quote $ Fn (Map Dynamic Dynamic) app.schema/Resource (Option app.schema/ItemId) (-> respo.schema/Component) (:features :io :state)
         'comp-topic-parent $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-topic-parent (topic)
             if (nil? topic)
@@ -844,36 +842,23 @@
       :defs $ {}
         '*resource $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *resource
-            {}
-              :top10 $ []
-              :topics $ {}
-              :replies $ {}
+            app.schema/Resource :top10 ([]) :topics ({}) :replies $ {}
           :examples $ []
-          :schema $ quote $ Ref (Map Tag Dynamic)
+          :schema $ quote $ Ref app.schema/Resource
         'append-topic $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn append-topic (resource topic)
-            assoc resource :top10 $ conj
-              decode-map-as
-                .unwrap-or (get resource :top10) ([])
-                List Dynamic
-              , topic
+            struct-with resource $ :top10 $ conj (:top10 resource) topic
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Topic
-            -> $ Map Tag Dynamic
-            :generics Topic
+          :schema $ quote $ Fn app.schema/Resource Topic (-> app.schema/Resource) (:generics Topic)
         'assoc-resource-in $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn assoc-resource-in (resource bucket id value)
-            let
-                key $ match bucket
-                  (:topics) :topics
-                  (:replies) :replies
-              decode-map-as
-                assoc-in resource ([] key id) value
-                Map Tag Dynamic
+            match bucket
+              (:topics)
+                struct-with resource $ :topics $ assoc (:topics resource) id value
+              (:replies)
+                struct-with resource $ :replies $ assoc (:replies resource) id value
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/ResourceBucket app.schema/ItemId Value
-            -> $ Map Tag Dynamic
-            :generics Value
+          :schema $ quote $ Fn app.schema/Resource app.schema/ResourceBucket app.schema/ItemId Value (-> app.schema/Resource) (:generics Value)
         'data-get! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn data-get! (url)
             hint-fn $ Fn String (-> Dynamic) (:async)
@@ -920,7 +905,8 @@
           :schema $ quote $ Fn app.schema/ItemId (-> Unit) (:features :js-ffi :state) (:async)
         'load-top10! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-top10! () (hint-fn Async)
-            swap! *resource assoc :top10 $ []
+            swap! *resource $ fn (resource)
+              struct-with resource $ :top10 $ []
             let
                 data $ decode-map-as
                   js-await $ data-get! |https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty
@@ -1110,6 +1096,13 @@
             :load-reply app.schema/ItemId
           :examples $ []
           :schema $ quote EnumDef
+        'Resource $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct Resource
+            :top10 $ List Dynamic
+            :topics $ Map app.schema/ItemId Dynamic
+            :replies $ Map app.schema/ItemId Dynamic
+          :examples $ []
+          :schema $ quote StructDef
         'ResourceBucket $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum ResourceBucket (:topics) (:replies)
           :examples $ []
