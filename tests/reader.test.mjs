@@ -2,14 +2,14 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { invoke_method } from "@calcit/procs";
 import * as c from "../js-out/calcit.core.mjs";
-import { Op, Resource, store } from "../js-out/app.schema.mjs";
+import { Op, RankedTopic, Resource, store } from "../js-out/app.schema.mjs";
 import { updater } from "../js-out/app.updater.mjs";
 import { new_reel } from "../js-out/reel.typed.mjs";
 import { comp_container } from "../js-out/app.comp.container.mjs";
 import { make_string } from "../js-out/respo.render.html.mjs";
 import { load_topic_$x_, load_top10_$x_, _$s_resource } from "../js-out/app.data-gather.mjs";
 
-const t = c.init_tags(["top10", "topics", "replies", "id", "title", "score", "by", "time", "url", "kids", "text", "router", "data", "states", "editor"]);
+const t = c.init_tags(["top10", "topics", "replies", "id", "title", "score", "by", "time", "url", "kids", "text", "router", "data", "states", "editor", "rank", "value"]);
 const map = c._$n__$M_;
 const field = (value, key) => invoke_method("unwrap", c.get(value, key));
 const op = (name, ...args) => c._PCT__$o__$o_(Op, c.to_tag(name), ...args);
@@ -31,12 +31,16 @@ test("reader keeps topic, Markdown reply, route depth and whole-store UI state",
     Object.defineProperty(globalThis, "localStorage", { configurable: true, value: localStorage });
     const topic = map(t.id, 101, t.title, "Fixture topic", t.score, 42, t.by, "author", t.time, 0, t.url, "https://example.com/fixture", t.kids, c._$L_(102));
     const reply = map(t.id, 102, t.text, "Fixture paragraph", t.by, "commenter", t.time, 0, t.kids, c._$L_());
-    const resource = c._$n__PCT__$M_(Resource, t.top10, c._$L_(topic), t.topics, map(101, topic, "101", topic), t.replies, map(102, reply));
+    const rankedTopic = c._$n__PCT__$M_(RankedTopic, t.rank, 0, t.value, topic);
+    const secondTopic = map(t.id, 103, t.title, "Second fixture", t.score, 7, t.by, "author", t.time, 0, t.kids, c._$L_());
+    const secondRanked = c._$n__PCT__$M_(RankedTopic, t.rank, 1, t.value, secondTopic);
+    const resource = c._$n__PCT__$M_(Resource, t.top10, c._$L_(rankedTopic, secondRanked), t.topics, map(101, topic, "101", topic), t.replies, map(102, reply));
     let db = updater(store, op("router", c._$L_(101)), "fixture", 0);
     const pending = c._$n__PCT__$M_(Resource, t.top10, c._$L_(), t.topics, map(), t.replies, map());
     assert.ok(make_string(comp_container(new_reel(db), pending, () => {})).includes("loading..."));
     const html = make_string(comp_container(new_reel(db), resource, () => {}));
     assert.ok(html.includes("Fixture topic") && html.includes("Fixture paragraph"));
+    assert.ok(html.indexOf("Fixture topic") < html.indexOf("Second fixture"));
     assert.ok(html.includes("https://example.com/fixture"));
     const textRoute = updater(store, op("router", c._$L_("101")), "fixture", 0);
     assert.equal(field(field(textRoute, t.router), t.data).get(0), "101");
@@ -102,12 +106,74 @@ test("concurrent top stories preserve both topic cache entries", async () => {
     for (let attempt = 0; pending.size < 2 && attempt < 100; attempt++) await new Promise((resolve) => setImmediate(resolve));
     assert.equal(pending.size, 2);
     pending.get("https://hacker-news.firebaseio.com/v0/item/102.json?print=pretty")(new Response('{"id":102}'));
+    for (let attempt = 0; c.count(field(c.deref(_$s_resource), t.top10)) < 1 && attempt < 100; attempt++) await new Promise((resolve) => setImmediate(resolve));
+    const partial = field(c.deref(_$s_resource), t.top10);
+    assert.equal(c.count(partial), 1);
+    assert.equal(field(field(partial.get(0), t.value), t.id), 102);
     pending.get("https://hacker-news.firebaseio.com/v0/item/101.json?print=pretty")(new Response('{"id":101}'));
     await loading;
     const resource = c.deref(_$s_resource);
     assert.equal(c.count(field(resource, t.top10)), 2);
+    assert.deepEqual([field(field(field(resource, t.top10).get(0), t.value), t.id), field(field(field(resource, t.top10).get(1), t.value), t.id)], [101, 102]);
     assert.equal(field(field(field(resource, t.topics), 101), t.id), 101);
     assert.equal(field(field(field(resource, t.topics), 102), t.id), 102);
+  } finally {
+    globalThis.fetch = originalFetch;
+    c.reset_$x_(_$s_resource, before);
+  }
+});
+
+test("a newer refresh ignores late results from an older refresh", async () => {
+  const originalFetch = globalThis.fetch;
+  const before = c.deref(_$s_resource);
+  const pending = new Map();
+  let refreshes = 0;
+  try {
+    globalThis.fetch = async (url) => {
+      if (url.endsWith("/topstories.json?print=pretty")) return new Response(JSON.stringify(++refreshes === 1 ? [101] : [202]));
+      return new Promise((resolve) => pending.set(url, resolve));
+    };
+    const oldRefresh = load_top10_$x_();
+    for (let attempt = 0; pending.size < 1 && attempt < 100; attempt++) await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(pending.size, 1);
+    const newRefresh = load_top10_$x_();
+    for (let attempt = 0; pending.size < 2 && attempt < 100; attempt++) await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(pending.size, 2);
+    pending.get("https://hacker-news.firebaseio.com/v0/item/202.json?print=pretty")(new Response('{"id":202}'));
+    await newRefresh;
+    pending.get("https://hacker-news.firebaseio.com/v0/item/101.json?print=pretty")(new Response('{"id":101}'));
+    await oldRefresh;
+    const resource = c.deref(_$s_resource);
+    const ranked = field(resource, t.top10);
+    assert.equal(c.count(ranked), 1);
+    assert.equal(field(field(ranked.get(0), t.value), t.id), 202);
+    assert.equal(c.contains_$q_(field(resource, t.topics), 101), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+    c.reset_$x_(_$s_resource, before);
+  }
+});
+
+test("a late top-stories list does not start an obsolete refresh", async () => {
+  const originalFetch = globalThis.fetch;
+  const before = c.deref(_$s_resource);
+  const lists = [];
+  const items = [];
+  try {
+    globalThis.fetch = async (url) => {
+      if (url.endsWith("/topstories.json?print=pretty")) return new Promise((resolve) => lists.push(resolve));
+      items.push(url);
+      return new Response('{"id":202}');
+    };
+    const oldRefresh = load_top10_$x_();
+    const newRefresh = load_top10_$x_();
+    assert.equal(lists.length, 2);
+    lists[1](new Response("[202]"));
+    await newRefresh;
+    lists[0](new Response("[101]"));
+    await oldRefresh;
+    assert.deepEqual(items, ["https://hacker-news.firebaseio.com/v0/item/202.json?print=pretty"]);
+    assert.equal(field(field(field(c.deref(_$s_resource), t.top10).get(0), t.value), t.id), 202);
   } finally {
     globalThis.fetch = originalFetch;
     c.reset_$x_(_$s_resource, before);

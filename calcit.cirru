@@ -394,28 +394,30 @@
                 list->
                   {} (:class-name css/expand)
                     :style $ {} (:padding "|0px 0 100px 0") (:overflow-x :hidden) (:text-overflow :ellipsis)
-                  -> topics $ map $ fn (topic)
-                    [] (read-field topic :id)
-                      comp-topic topic
-                        if
-                          match focus-id
-                            (:some id)
-                              match
-                                try-decode-map-as (read-field topic :id) app.schema/ItemId
-                                (:ok topic-id)
-                                  = (id->string topic-id) (id->string id)
-                                (:err _) false
-                            (:none) false
-                          {} $ :background-color :white
-                          {}
-                        fn (e d!)
-                          hint-fn $ Fn respo.schema/RespoEvent
-                            Fn app.schema/Op $ -> Unit
-                            -> Unit
-                          let
-                              id $ decode-map-as (read-field topic :id) app.schema/ItemId
-                            d! $ app.schema/Op :load-topic id
-                            d! $ app.schema/Op :router $ [] id
+                  -> topics $ map $ fn (entry)
+                    let
+                        topic $ :value entry
+                      [] (read-field topic :id)
+                        comp-topic topic
+                          if
+                            match focus-id
+                              (:some id)
+                                match
+                                  try-decode-map-as (read-field topic :id) app.schema/ItemId
+                                  (:ok topic-id)
+                                    = (id->string topic-id) (id->string id)
+                                  (:err _) false
+                              (:none) false
+                            {} $ :background-color :white
+                            {}
+                          fn (e d!)
+                            hint-fn $ Fn respo.schema/RespoEvent
+                              Fn app.schema/Op $ -> Unit
+                              -> Unit
+                            let
+                                id $ decode-map-as (read-field topic :id) app.schema/ItemId
+                              d! $ app.schema/Op :load-topic id
+                              d! $ app.schema/Op :router $ [] id
                 div
                   {} $ :class-name css/row-parted
                   span $ {}
@@ -845,11 +847,19 @@
             app.schema/Resource :top10 ([]) :topics ({}) :replies $ {}
           :examples $ []
           :schema $ quote $ Ref app.schema/Resource
+        '*top-generation $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defref *top-generation 0
+          :examples $ []
+          :schema $ quote $ Ref Number
         'append-topic $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn append-topic (resource topic)
-            struct-with resource $ :top10 $ conj (:top10 resource) topic
+            struct-with resource $ :top10 $ sort
+              conj (:top10 resource) topic
+              fn (a b)
+                hint-fn $ Fn app.schema/RankedTopic app.schema/RankedTopic $ -> Number
+                - (:rank a) (:rank b)
           :examples $ []
-          :schema $ quote $ Fn app.schema/Resource Topic (-> app.schema/Resource) (:generics Topic)
+          :schema $ quote $ Fn app.schema/Resource app.schema/RankedTopic (-> app.schema/Resource)
         'assoc-resource-in $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn assoc-resource-in (resource bucket id value)
             match bucket
@@ -904,22 +914,29 @@
           :examples $ []
           :schema $ quote $ Fn app.schema/ItemId (-> Unit) (:features :js-ffi :state) (:async)
         'load-top10! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn load-top10! () (hint-fn Async)
-            swap! *resource $ fn (resource)
-              struct-with resource $ :top10 $ []
+          :code $ quote $ defn load-top10! () (hint-fn Async) (swap! *top-generation inc)
             let
-                data $ decode-map-as
-                  js-await $ data-get! |https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty
-                  List app.schema/ItemId
-                top-ids $ take data 30
-              js-await $ promise-all top-ids $ fn (topic-id)
-                hint-fn $ Fn app.schema/ItemId (-> Unit) (:features :js-ffi :state) (:async)
-                let
-                    topic $ js-await $ data-get! (item-url topic-id)
-                  swap! *resource append-topic topic
-                  swap! *resource assoc-resource-in (app.schema/ResourceBucket :topics) topic-id topic
-                  , &unit
-            , &unit
+                generation @*top-generation
+              swap! *resource $ fn (resource)
+                struct-with resource $ :top10 $ []
+              let
+                  raw $ js-await $ data-get! |https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty
+                when (= generation @*top-generation)
+                  let
+                      data $ decode-map-as raw $ List app.schema/ItemId
+                      top-ids $ take data 30
+                    js-await $ promise-all
+                      range $ .len top-ids
+                      fn (rank)
+                        hint-fn $ Fn Number (-> Unit) (:features :js-ffi :state) (:async)
+                        let
+                            topic-id $ .unwrap $ nth top-ids rank
+                            topic $ js-await $ data-get! (item-url topic-id)
+                          when (= generation @*top-generation)
+                            swap! *resource append-topic $ app.schema/RankedTopic :rank rank :value topic
+                            swap! *resource assoc-resource-in (app.schema/ResourceBucket :topics) topic-id topic
+                          , &unit
+              , &unit
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state) (:async)
         'load-topic! $ %{} 'CodeEntry (:doc |)
@@ -1096,9 +1113,13 @@
             :load-reply app.schema/ItemId
           :examples $ []
           :schema $ quote EnumDef
+        'RankedTopic $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct RankedTopic (:rank Number) (:value Dynamic)
+          :examples $ []
+          :schema $ quote StructDef
         'Resource $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Resource
-            :top10 $ List Dynamic
+            :top10 $ List app.schema/RankedTopic
             :topics $ Map app.schema/ItemId Dynamic
             :replies $ Map app.schema/ItemId Dynamic
           :examples $ []
