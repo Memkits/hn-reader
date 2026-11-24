@@ -1125,10 +1125,10 @@
           :code $ quote $ defn read-kids (data)
             decode-map-as
               or (read-field data :kids) ([])
-              List Number
+              List app.schema/ItemId
           :examples $ []
           :schema $ quote $ Fn Input
-            -> $ List Number
+            -> $ List ItemId
             :generics Input
         'set-js-string! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn set-js-string! (target field value) (aset target field value) &unit

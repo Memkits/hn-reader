@@ -43,6 +43,9 @@ test("reader keeps topic, Markdown reply, route depth and whole-store UI state",
     const textRouteHtml = make_string(comp_container(new_reel(textRoute), resource, () => {}));
     assert.ok(textRouteHtml.includes("Fixture paragraph"));
     assert.match(textRouteHtml, /background-color:white/);
+    const textKidTopic = map(t.id, 101, t.title, "Fixture topic", t.score, 42, t.by, "author", t.time, 0, t.kids, c._$L_("102"));
+    const textKidResource = c._$n__PCT__$M_(Resource, t.top10, c._$L_(), t.topics, map("101", textKidTopic), t.replies, map("102", reply));
+    assert.ok(make_string(comp_container(new_reel(textRoute), textKidResource, () => {})).includes("Fixture paragraph"));
     const highlighted = updater(textRoute, op("highlight", c._$L_("102", 0)), "fixture", 0);
     const restored = c.parse_cirru_edn(c.format_cirru_edn(highlighted));
     assert.match(make_string(comp_container(new_reel(restored), resource, () => {})), /background-color:hsl\(80,80%,90%\)/);
