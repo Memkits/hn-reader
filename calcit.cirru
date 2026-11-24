@@ -847,6 +847,10 @@
             app.schema/Resource :top10 ([]) :topics ({}) :replies $ {}
           :examples $ []
           :schema $ quote $ Ref app.schema/Resource
+        '*top-generation $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defref *top-generation 0
+          :examples $ []
+          :schema $ quote $ Ref Number
         'append-topic $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn append-topic (resource topic)
             struct-with resource $ :top10 $ sort
@@ -910,25 +914,29 @@
           :examples $ []
           :schema $ quote $ Fn app.schema/ItemId (-> Unit) (:features :js-ffi :state) (:async)
         'load-top10! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn load-top10! () (hint-fn Async)
-            swap! *resource $ fn (resource)
-              struct-with resource $ :top10 $ []
+          :code $ quote $ defn load-top10! () (hint-fn Async) (swap! *top-generation inc)
             let
-                data $ decode-map-as
-                  js-await $ data-get! |https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty
-                  List app.schema/ItemId
-                top-ids $ take data 30
-              js-await $ promise-all
-                range $ .len top-ids
-                fn (rank)
-                  hint-fn $ Fn Number (-> Unit) (:features :js-ffi :state) (:async)
+                generation @*top-generation
+              swap! *resource $ fn (resource)
+                struct-with resource $ :top10 $ []
+              let
+                  raw $ js-await $ data-get! |https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty
+                when (= generation @*top-generation)
                   let
-                      topic-id $ .unwrap $ nth top-ids rank
-                      topic $ js-await $ data-get! (item-url topic-id)
-                    swap! *resource append-topic $ app.schema/RankedTopic :rank rank :value topic
-                    swap! *resource assoc-resource-in (app.schema/ResourceBucket :topics) topic-id topic
-                    , &unit
-            , &unit
+                      data $ decode-map-as raw $ List app.schema/ItemId
+                      top-ids $ take data 30
+                    js-await $ promise-all
+                      range $ .len top-ids
+                      fn (rank)
+                        hint-fn $ Fn Number (-> Unit) (:features :js-ffi :state) (:async)
+                        let
+                            topic-id $ .unwrap $ nth top-ids rank
+                            topic $ js-await $ data-get! (item-url topic-id)
+                          when (= generation @*top-generation)
+                            swap! *resource append-topic $ app.schema/RankedTopic :rank rank :value topic
+                            swap! *resource assoc-resource-in (app.schema/ResourceBucket :topics) topic-id topic
+                          , &unit
+              , &unit
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state) (:async)
         'load-topic! $ %{} 'CodeEntry (:doc |)

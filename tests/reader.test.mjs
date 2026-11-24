@@ -120,6 +120,63 @@ test("concurrent top stories preserve both topic cache entries", async () => {
   }
 });
 
+test("a newer refresh ignores late results from an older refresh", async () => {
+  const originalFetch = globalThis.fetch;
+  const before = c.deref(_$s_resource);
+  const pending = new Map();
+  let refreshes = 0;
+  try {
+    globalThis.fetch = async (url) => {
+      if (url.endsWith("/topstories.json?print=pretty")) return new Response(JSON.stringify(++refreshes === 1 ? [101] : [202]));
+      return new Promise((resolve) => pending.set(url, resolve));
+    };
+    const oldRefresh = load_top10_$x_();
+    for (let attempt = 0; pending.size < 1 && attempt < 100; attempt++) await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(pending.size, 1);
+    const newRefresh = load_top10_$x_();
+    for (let attempt = 0; pending.size < 2 && attempt < 100; attempt++) await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(pending.size, 2);
+    pending.get("https://hacker-news.firebaseio.com/v0/item/202.json?print=pretty")(new Response('{"id":202}'));
+    await newRefresh;
+    pending.get("https://hacker-news.firebaseio.com/v0/item/101.json?print=pretty")(new Response('{"id":101}'));
+    await oldRefresh;
+    const resource = c.deref(_$s_resource);
+    const ranked = field(resource, t.top10);
+    assert.equal(c.count(ranked), 1);
+    assert.equal(field(field(ranked.get(0), t.value), t.id), 202);
+    assert.equal(c.contains_$q_(field(resource, t.topics), 101), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+    c.reset_$x_(_$s_resource, before);
+  }
+});
+
+test("a late top-stories list does not start an obsolete refresh", async () => {
+  const originalFetch = globalThis.fetch;
+  const before = c.deref(_$s_resource);
+  const lists = [];
+  const items = [];
+  try {
+    globalThis.fetch = async (url) => {
+      if (url.endsWith("/topstories.json?print=pretty")) return new Promise((resolve) => lists.push(resolve));
+      items.push(url);
+      return new Response('{"id":202}');
+    };
+    const oldRefresh = load_top10_$x_();
+    const newRefresh = load_top10_$x_();
+    assert.equal(lists.length, 2);
+    lists[1](new Response("[202]"));
+    await newRefresh;
+    lists[0](new Response("[101]"));
+    await oldRefresh;
+    assert.deepEqual(items, ["https://hacker-news.firebaseio.com/v0/item/202.json?print=pretty"]);
+    assert.equal(field(field(field(c.deref(_$s_resource), t.top10).get(0), t.value), t.id), 202);
+  } finally {
+    globalThis.fetch = originalFetch;
+    c.reset_$x_(_$s_resource, before);
+  }
+});
+
 test("Azure speech uses the installed SDK without a global or network", async () => {
   const sdk = await import("microsoft-cognitiveservices-speech-sdk/distrib/lib/microsoft.cognitiveservices.speech.sdk.js");
   const prior = sdk.SpeechSynthesizer.prototype.speakSsmlAsync;
