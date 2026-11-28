@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { invoke_method } from "@calcit/procs";
 import * as c from "../js-out/calcit.core.mjs";
-import { Op, RankedTopic, Resource, store } from "../js-out/app.schema.mjs";
+import { Op, RankedTopic, Resource, store, read_kids } from "../js-out/app.schema.mjs";
 import { updater } from "../js-out/app.updater.mjs";
 import { new_reel } from "../js-out/reel.typed.mjs";
-import { comp_container } from "../js-out/app.comp.container.mjs";
+import { comp_container, reply_hidden_$q_ } from "../js-out/app.comp.container.mjs";
 import { make_string } from "../js-out/respo.render.html.mjs";
 import { load_topic_$x_, load_top10_$x_, _$s_resource } from "../js-out/app.data-gather.mjs";
 
@@ -211,4 +211,18 @@ test("Azure speech uses the installed SDK without a global or network", async ()
       else Reflect.deleteProperty(globalThis, key);
     }
   }
+});
+
+test("missing and false child lists and reply visibility keep their legacy behavior", () => {
+  const flags = c.init_tags(["dead", "deleted", "text", "kids"]);
+  for (const value of [null, false]) {
+    assert.equal(c.count(read_kids(map(flags.kids, value))), 0);
+    assert.equal(reply_hidden_$q_(map(flags.dead, value, flags.deleted, value)), false);
+  }
+  assert.equal(c.count(read_kids(map(flags.kids, c._$L_(101, "102")))), 2);
+  assert.equal(reply_hidden_$q_(map(flags.dead, 0)), true);
+  assert.equal(reply_hidden_$q_(map(flags.deleted, true)), true);
+  assert.equal(reply_hidden_$q_(map(flags.text, "[dead]")), true);
+  assert.equal(reply_hidden_$q_(map(flags.text, "[flagged]")), true);
+  assert.equal(reply_hidden_$q_(map(flags.text, "normal")), false);
 });

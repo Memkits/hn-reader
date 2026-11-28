@@ -34,7 +34,9 @@
                         (Number id) (str id)
                         (String id) id
                       kids $ decode-map-as
-                        either (read-field item :kids) ([])
+                        .unwrap-or
+                          nil->option $ read-field item :kids
+                          []
                         List app.schema/ItemId
                     div
                       {} $ :class-name $ str-spaced css/column css-comment-list
@@ -92,8 +94,8 @@
                   .unwrap-or (get router :data) ([])
                   List app.schema/ItemId
                 highlighted $ decode-map-as
-                  either
-                    .unwrap-or (get store :highlighted) ([])
+                  .unwrap-or
+                    nil->option $ .unwrap-or (get store :highlighted) ([])
                     []
                   List app.schema/ItemId
                 focus-id $ first router-data
@@ -182,7 +184,9 @@
                     let
                         content $ read-field reply :text
                         paragraphs $ split
-                          decode-map-as (either content |) 'String
+                          decode-map-as
+                            .unwrap-or (nil->option content) |
+                            , 'String
                           , |<p>
                         audio-target $ config/get-audio-target
                       list-> ({})
@@ -304,16 +308,14 @@
             -> respo.schema/Component
         'comp-time $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-time (time)
-            if (non-nil? time)
-              let
-                  snapshot $ date-snapshot $ js-ffi.shared/date-from-ms (* 1000 time)
-                  iso $ :iso snapshot
-                  current-iso $ :iso $ date-now-snapshot
-                if
-                  = (&str:slice current-iso 0 4) (&str:slice iso 0 4)
-                  <> $ &str:replace (&str:slice iso 5 16) |T |
-                  <> $ &str:replace (&str:slice iso 0 16) |T |
-              <> |nil
+            let
+                snapshot $ date-snapshot $ js-ffi.shared/date-from-ms (* 1000 time)
+                iso $ :iso snapshot
+                current-iso $ :iso $ date-now-snapshot
+              if
+                = (&str:slice current-iso 0 4) (&str:slice iso 0 4)
+                <> $ &str:replace (&str:slice iso 5 16) |T |
+                <> $ &str:replace (&str:slice iso 0 16) |T |
           :examples $ []
           :schema $ quote $ Fn Number (-> respo.schema/Component) (:features :js-ffi)
         'comp-topic $ %{} 'CodeEntry (:doc |)
@@ -660,9 +662,7 @@
         'effect-height! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect effect-height! (open?) (action el at?)
             if
-              and
-                or (= action :mount) (= action :update)
-                non-nil? el
+              or (= action :mount) (= action :update)
               let
                   host-el $ element-host el
                   height $ element-scroll-height host-el
@@ -722,8 +722,16 @@
         'reply-hidden? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reply-hidden? (reply)
             let
-                content $ either (read-field reply :text) |
-              not $ not $ or (read-field reply :dead) (read-field reply :deleted) (= content |[dead]) (= content |[flagged])
+                content $ .unwrap-or
+                  nil->option $ read-field reply :text
+                  , |
+                dead $ read-field reply :dead
+                deleted $ read-field reply :deleted
+              or
+                not $ or (nil? dead) (identical? dead false)
+                not $ or (nil? deleted) (identical? deleted false)
+                identical? content |[dead]
+                identical? content |[flagged]
           :examples $ []
           :schema $ quote $ Fn Input (-> Bool) (:generics Input)
         'speech-via-api! $ %{} 'CodeEntry (:doc |)
@@ -902,7 +910,9 @@
             let
                 reply $ js-await $ data-get! (item-url reply-id)
                 reply-ids $ decode-map-as
-                  either (read-field reply :kids) ([])
+                  .unwrap-or
+                    nil->option $ read-field reply :kids
+                    []
                   List app.schema/ItemId
               js-await $ promise-all reply-ids $ fn (reply-id)
                 hint-fn $ Fn app.schema/ItemId (-> Unit) (:features :js-ffi :state) (:async)
@@ -944,7 +954,9 @@
             let
                 topic $ js-await $ data-get! (item-url topic-id)
                 reply-ids $ decode-map-as
-                  either (read-field topic :kids) ([])
+                  .unwrap-or
+                    nil->option $ read-field topic :kids
+                    []
                   List app.schema/ItemId
               swap! *resource assoc-resource-in (app.schema/ResourceBucket :topics) topic-id topic
               js-await $ promise-all reply-ids $ fn (reply-id)
@@ -1144,9 +1156,14 @@
           :schema $ quote $ Fn Input Tag (-> Dynamic) (:generics Input) (:features :js-ffi)
         'read-kids $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-kids (data)
-            decode-map-as
-              or (read-field data :kids) ([])
-              List app.schema/ItemId
+            let
+                raw $ read-field data :kids
+              decode-map-as
+                if
+                  or (nil? raw) (identical? raw false)
+                  []
+                  , raw
+                List app.schema/ItemId
           :examples $ []
           :schema $ quote $ Fn Input
             -> $ List ItemId
